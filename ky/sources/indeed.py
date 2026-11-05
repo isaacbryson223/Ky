@@ -48,6 +48,7 @@ def _job(fields: dict[str, str], description: str = "") -> Job:
         pay_min=lo, pay_max=hi, pay_period=period,
         schedule=fields.get("Job Type", "").strip(),
         external_id=fields.get("Job Id", "").strip(),
+        via="Indeed",
     )
 
 

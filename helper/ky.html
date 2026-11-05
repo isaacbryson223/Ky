@@ -1,6 +1,6 @@
 <title>Agent Ky</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="ky-version" content="2.4">
+<meta name="ky-version" content="2.5">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap">
@@ -327,6 +327,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
 .next { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); flex-wrap: wrap; }
 .next p { flex: 1 1 260px; min-width: 0; }
 .reasons { font-size: .85rem; color: var(--muted); }
+#addJobBtn { margin-left: auto; }
 .revise { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: var(--surface-2); }
 .revise-row { display: flex; gap: 8px; }
 .revise-row input, .qa input { flex: 1; min-width: 0; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 16px; }
@@ -508,6 +509,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
       <div class="ft-body">
         <div><div class="ft-label" id="rolesLabel">Job types to look for</div><div class="choice" id="roles" role="group" aria-labelledby="rolesLabel"></div></div>
         <div><div class="ft-label" id="schedLabel">Schedule</div><div class="choice" id="sched" role="radiogroup" aria-labelledby="schedLabel"></div></div>
+        <div><div class="ft-label" id="webLabel">Daily job alerts</div><div class="choice" id="webPref" role="group" aria-labelledby="webLabel"></div><p class="small muted" style="margin-top:6px">Searching the whole web finds more jobs but uses more of your Claude usage.</p></div>
         <div><div class="ft-label" id="shiftLabel">Shifts I can work</div><div class="choice" id="shifts" role="group" aria-labelledby="shiftLabel"></div><p class="small muted" style="margin-top:6px">Leave these empty if you're flexible. I'll rank jobs that fit your schedule higher.</p></div>
       </div>
     </details>
@@ -515,6 +517,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
     <div class="start-row">
       <button class="btn btn-primary btn-big" id="start" type="button">Start the search</button>
       <button class="btn btn-soft" id="stop" type="button" hidden>Stop</button>
+      <button class="btn btn-soft" id="webBtn" type="button">Search the whole web</button>
       <span class="small muted" id="startHelp">Add your resume and ZIP code to start.</span>
     </div>
 
@@ -529,6 +532,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
   <section class="panel" aria-labelledby="jobsTitle">
     <div class="panel-head">
       <h2 id="jobsTitle">Your jobs</h2>
+      <button class="btn btn-soft btn-sm" id="addJobBtn" type="button">Add a job I found</button>
       <div class="stats" id="jobStats" hidden></div>
       <div class="filters" id="filters" role="group" aria-label="Show">
         <button type="button" data-f="all" aria-pressed="true">All</button>
@@ -579,7 +583,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
     </div>
   </section>
 
-  <p class="footer">Ky only uses facts from your resume and never applies, signs in, or sends anything without you. · Ky v2.4</p>
+  <p class="footer">Ky only uses facts from your resume and never applies, signs in, or sends anything without you. · Ky v2.5</p>
 </div>
 
 <button class="fab" id="fab" type="button" aria-label="Ask Ky a question"><span class="face" data-kyface></span><span>Ask Ky</span></button>
@@ -1056,7 +1060,7 @@ function jobFrom(f, desc = "") {
   const [lo, hi] = payParse(f["Compensation"]);
   return { title: (f["Job Title"] || "").trim(), company: (f["Company"] || "").trim(), location: (f["Location"] || "").trim(),
     jobId: (f["Job Id"] || "").trim(), posted: toISO(f["Posted on"] || ""), type: (f["Job Type"] || "").trim(),
-    payText: (f["Compensation"] || "").trim(), payMin: lo, payMax: hi, url: safeUrl(f["View Job URL"]), description: desc.trim() };
+    payText: (f["Compensation"] || "").trim(), payMin: lo, payMax: hi, url: safeUrl(f["View Job URL"]), description: desc.trim(), via: "Indeed" };
 }
 function parseSearch(md) {
   const out = []; let cur = {};
@@ -1085,6 +1089,100 @@ function payloadText(r) {
   if (p && typeof p.result === "string") return p.result;
   const tb = (r?.content || []).find((c) => c.type === "text"); if (!tb) return "";
   try { const j = JSON.parse(tb.text); return typeof j.result === "string" ? j.result : tb.text; } catch { return tb.text; }
+}
+// ---- ZipRecruiter (and any other job connector): read listings in whatever shape they come back ----
+const KEYMAP = {
+  title: ["title", "job_title", "jobTitle", "name", "position", "job title"],
+  company: ["company", "company_name", "companyName", "hiring_company", "hiringCompany", "employer", "organization", "hiring company"],
+  location: ["location", "job_location", "jobLocation", "city", "locationText", "formatted_location", "location_name"],
+  url: ["url", "job_url", "jobUrl", "link", "apply_url", "applyUrl", "job_link", "view job url", "job link"],
+  description: ["snippet", "description", "job_description", "jobDescription", "summary", "job_snippet"],
+  pay: ["salary", "compensation", "pay", "salary_range", "salaryText", "salary_text", "wage", "estimated_salary"],
+  posted: ["posted_time", "posted", "date_posted", "postedDate", "posted_at", "posted on", "created", "posted_time_friendly", "date"],
+  type: ["employment_type", "job_type", "type", "employmentType", "job type"],
+};
+const squash = (k) => String(k).toLowerCase().replace(/[^a-z]/g, "");
+function pick(o, keys) {
+  for (const k of keys) {
+    const v = o?.[k] ?? o?.[Object.keys(o || {}).find((x) => squash(x) === squash(k))];
+    if (v == null || v === "") continue;
+    if (typeof v === "string" || typeof v === "number") return String(v);
+    if (typeof v === "object") { const n = v.name || v.display_name || v.displayName || v.text || v.value || v.formatted; if (n) return String(n); }
+  }
+  return "";
+}
+function findJobArray(x, depth = 0) {
+  if (depth > 5 || !x || typeof x !== "object") return [];
+  if (Array.isArray(x)) {
+    if (x.some((o) => o && typeof o === "object" && !Array.isArray(o) && pick(o, KEYMAP.title))) return x;
+    for (const y of x) { const r = findJobArray(y, depth + 1); if (r.length) return r; }
+    return [];
+  }
+  for (const v of Object.values(x)) { const r = findJobArray(v, depth + 1); if (r.length) return r; }
+  return [];
+}
+const stripTags = (t) => String(t || "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/[ \t]+/g, " ").trim();
+function toJob(o, via) {
+  let payText = pick(o, KEYMAP.pay);
+  if (!payText && (o.salary_min || o.salary_max || o.min_salary || o.max_salary)) {
+    const lo = o.salary_min ?? o.min_salary, hi = o.salary_max ?? o.max_salary, per = o.salary_interval || o.salary_period || o.pay_period || "";
+    payText = `$${lo ?? hi}${hi && lo ? " - $" + hi : ""}${per ? " " + (/hour/i.test(per) ? "an hour" : /year|annual/i.test(per) ? "a year" : per) : ""}`;
+  }
+  const [lo, hi] = payParse(payText);
+  return { title: stripTags(pick(o, KEYMAP.title)).slice(0, 160), company: stripTags(pick(o, KEYMAP.company)).slice(0, 120), location: stripTags(pick(o, KEYMAP.location)).slice(0, 120),
+    url: safeUrl(pick(o, KEYMAP.url)), description: stripTags(pick(o, KEYMAP.description)).slice(0, 9000), payText, payMin: lo, payMax: hi,
+    posted: toISO(pick(o, KEYMAP.posted)), type: pick(o, KEYMAP.type), jobId: pick(o, ["id", "job_id", "jobId", "listing_key"]), via };
+}
+function parseKV(text, via) {  // "**Job Title:** …" or "Title: …" blocks
+  const out = []; let cur = null;
+  const field = (k) => { const q = squash(k); for (const [f, ks] of Object.entries(KEYMAP)) if (ks.some((x) => squash(x) === q)) return f; return /url|link/.test(q) ? "url" : null; };
+  for (const line of String(text).split("\n")) {
+    const m = line.match(/^\s*(?:[-*]\s+)?\**([A-Za-z][A-Za-z _]{1,30}?)\**\s*:\s*\**\s*(.+?)\s*$/); if (!m) continue;
+    const f = field(m[1]); if (!f) continue;
+    if (f === "title" && cur?.title) { out.push(cur); cur = null; }
+    cur = cur || {}; if (!cur[f]) cur[f] = m[2].replace(/^\*+|\*+$/g, "").trim();
+  }
+  if (cur?.title) out.push(cur);
+  return out.map((c) => toJob({ title: c.title, company: c.company, location: c.location, url: c.url, description: c.description, salary: c.pay, posted: c.posted, type: c.type }, via));
+}
+function normalizeJobs(payload, via) {
+  let data = payload;
+  if (typeof data === "string") { try { data = JSON.parse(data); } catch {} }
+  if (data && typeof data === "object" && !Array.isArray(data) && typeof data.result === "string") return normalizeJobs(data.result, via);
+  const rows = data && typeof data === "object" ? findJobArray(data).filter((o) => o && typeof o === "object").map((o) => toJob(o, via)) : typeof data === "string" ? parseKV(data, via) : [];
+  return rows.filter((j) => j.title && j.company);
+}
+const zip = { off: false, why: "", schema: null, described: false, calls: 0 };
+function zipArgs(term) {
+  const props = zip.schema?.inputSchema?.properties;
+  if (!props) return { search: term, location: state.zip };
+  const keys = Object.keys(props);
+  const q = keys.find((k) => /search|query|keyword|title|what|term/i.test(k)) || keys[0];
+  const loc = keys.find((k) => /location|where|zip|postal|city|place/i.test(k));
+  const a = { [q]: term }; if (loc) a[loc] = state.zip;
+  return a;
+}
+async function zipSearch(term, signal) {
+  if (zip.off || !cap.mcp) return [];
+  if (!zip.described) { zip.described = true; try { zip.schema = await cap.mcp.describeTool("ZipRecruiter", "search_jobs"); } catch {} }
+  let res;
+  try { zip.calls++; res = await cap.mcp.callTool("ZipRecruiter", "search_jobs", zipArgs(term), { signal }); }
+  catch (e) {
+    if (e?.code === "cancelled") throw e;
+    if (["server_not_connected", "server_not_found", "needs_reauth", "not_in_manifest", "blocked_by_policy", "selection_required", "approval_required", "not_granted", "capability_disabled", "capability_removed"].includes(e?.code)) { zip.off = true; zip.why = e.code; return []; }
+    if (e?.code === "tool_error" && !zip.schema) {  // arguments may be named differently: learn them and try once more
+      try { zip.schema = await cap.mcp.describeTool("ZipRecruiter", "search_jobs"); res = await cap.mcp.callTool("ZipRecruiter", "search_jobs", zipArgs(term), { signal }); } catch { return []; }
+    } else return [];
+  }
+  let jobs = normalizeJobs(res?.payload ?? res?.structuredContent ?? payloadText(res), "ZipRecruiter");
+  const txt = jobs.length ? "" : payloadText(res);
+  if (!jobs.length && txt.length > 200 && cap.sample) {  // unfamiliar format: let Claude pull the listings out
+    try {
+      const arr = await cap.sample.json(`Below is a list of job postings returned by a job search. Extract every posting as a JSON array of objects with these keys: title, company, location, url, salary, posted, snippet. Copy values exactly; use "" when missing. Reply with only the JSON array.\n\n${txt.slice(0, 30000)}`, { modelTier: "quick", signal });
+      jobs = normalizeJobs(arr, "ZipRecruiter");
+    } catch (e) { if (e?.code === "cancelled") throw e; }
+  }
+  return jobs;
 }
 class ConnectorProblem extends Error {}
 function indeedProblem(e) {
@@ -1269,14 +1367,16 @@ async function startSearch() {
     const terms = searchTerms();
     kyScurry();
     let searched = 0, termFails = 0;
-    progress("search", `Searching Indeed for ${terms.length} kinds of jobs near ${state.zip}`);
+    progress("search", `Searching Indeed and ZipRecruiter for ${terms.length} kinds of jobs near ${state.zip}`);
+    zip.off = false; zip.why = "";
     await runPool(terms, 3, async (term) => {
       const input = { search: term, location: state.zip, country_code: "US" };
       if (state.prefs.schedule !== "any") input.job_type = state.prefs.schedule;
-      let md;
+      let md = "";
       try { md = await indeed("search_jobs", input, signal); }
-      catch (e) { if (e instanceof ConnectorProblem || e?.code === "cancelled") throw e; termFails++; console.warn("search", term, e); return; }
-      for (const j of parseSearch(md)) {
+      catch (e) { if (e instanceof ConnectorProblem || e?.code === "cancelled") throw e; termFails++; console.warn("search", term, e); }
+      const more = await zipSearch(term, signal);
+      for (const j of [...parseSearch(md), ...more]) {
         const key = "j" + hash(norm(j.company) + "|" + norm(j.title) + "|" + norm(j.location));
         if (!found.has(key) && !known.has(key)) found.set(key, { ...j, key });
       }
@@ -1284,9 +1384,10 @@ async function startSearch() {
       progress("search", `Searched ${searched} of ${terms.length} job types, ${found.size} new listings so far`);
       ky("working", SNIFF_LINES[searched % SNIFF_LINES.length], `Checking ${term} jobs near ${state.zip}…`);
     }, signal);
-    if (termFails === terms.length) throw new Error("Indeed didn't answer just now. Press Start to try again in a minute.");
+    if (termFails === terms.length && !found.size) throw new Error("Indeed didn't answer just now. Press Start to try again in a minute.");
+    const zipNote = zip.off && ["server_not_connected", "server_not_found", "not_in_manifest", "selection_required"].includes(zip.why) ? " (ZipRecruiter isn't connected, so I searched Indeed only)" : "";
     let pool = [...found.values()].map((j) => ({ j, s: score(j, p) })).filter((x) => x.s.tier && !serious(x.s));
-    progress("search", `Found ${found.size} new listings, ${pool.length} are entry-level patient-care jobs`, "done");
+    progress("search", `Found ${found.size} new listings, ${pool.length} are entry-level patient-care jobs${zipNote}`, "done");
     if (!pool.length) {
       ky(null, "Nothing new yet", "I didn't find new entry-level patient-care jobs near " + state.zip + " right now. Try again in a day or two, or turn on job alerts and I'll keep watching.");
       return;
@@ -1298,7 +1399,7 @@ async function startSearch() {
     let read = 0, fails = 0;
     progress("details", `Reading job details (0 of ${pool.length})`);
     await runPool(pool, 3, async (x) => {
-      if (!(fails >= 2 && read === 0)) {  // if details keep failing, rank from the listings instead
+      if (x.j.via === "Indeed" && x.j.jobId && !(fails >= 2 && read === 0)) {  // if details keep failing, rank from the listings instead
         try {
           const d = parseDetails(await indeed("get_job_details", { job_id: x.j.jobId }, signal));
           if (d.description) { x.j.description = d.description.slice(0, 9000); x.j.url = safeUrl(d.url) || x.j.url; read++; } else fails++;
@@ -1636,7 +1737,7 @@ function jobCard(j) {
     <div class="job-top">
       <div style="min-width:0">
         <div class="job-title">${esc(j.title)}</div>
-        <div class="job-meta">${esc(j.company)} · ${esc(j.location)}${ageText ? " · " + ageText : ""}${j.type ? " · " + esc(j.type) : ""}</div>
+        <div class="job-meta">${esc(j.company)}${j.location ? " · " + esc(j.location) : ""}${ageText ? " · " + ageText : ""}${j.type ? " · " + esc(j.type) : ""}${j.via ? (j.source === "manual" ? " · added by you" : " · via " + esc(j.via)) : ""}</div>
       </div>
       <div class="pay">${esc(pay)}</div>
     </div>
@@ -1909,6 +2010,67 @@ function openApply(j) {
   });
 }
 
+function openWebSearch() {
+  const where = /^\d{5}$/.test(state.zip) ? state.zip : "my ZIP code";
+  const msg = `Ky, please search the whole web for more entry-level patient-care jobs near ${where} and add the best ${state.count} to my helper with tailored resumes.`;
+  modal(`
+    <div class="dialog-head"><h2>Search the whole web</h2><button class="x" data-close aria-label="Close">×</button></div>
+    <p>I'll look beyond Indeed and ZipRecruiter: hospital and clinic career pages, nursing homes, home-care agencies, county and state jobs, VA hospitals, and other job sites near ${esc(where)}. The best jobs show up right here with a resume ready.</p>
+    <div class="notice warn"><div><b>Good to know</b><ul>
+      <li>This runs in your Claude chat, so you'll paste a message there. Keep this page open; new jobs appear on their own.</li>
+      <li>It takes a few minutes and uses more of your Claude usage than a normal search.</li>
+      <li>Some sites, like LinkedIn, don't let me read their posts. If I find one there, I'll give you the link so you can paste it into "Add a job I found".</li>
+    </ul></div></div>
+    ${!state.resumeText || !/^\d{5}$/.test(state.zip) ? `<div class="notice warn"><div>Add your resume and ZIP code first, so I know what to look for.</div></div>` : ""}
+    <p class="small">Copy this message and send it to me in your Claude chat:</p>
+    ${copyBlock("webMsg", msg)}`, (dlg) => wireCopy(dlg));
+}
+
+function openAddJob() {
+  if (!state.profile) return toast(state.resumeText ? "I'm still reading your resume. Try again in a moment." : "Add your resume first (step 1).");
+  if (!cap.sample) return toast("I can only write resumes when this page is open inside Claude.");
+  modal(`
+    <div class="dialog-head"><h2>Add a job you found</h2><button class="x" data-close aria-label="Close">×</button></div>
+    <p class="small muted">Found a job on LinkedIn, a hospital's website, a flyer, or anywhere else? Copy the job post and paste it below. I'll write a resume for it.</p>
+    <div class="hours-form" style="grid-template-columns:1fr 1fr">
+      <div class="field"><label for="ajTitle">Job title</label><input id="ajTitle" placeholder="e.g. Patient Care Tech"></div>
+      <div class="field"><label for="ajCompany">Employer</label><input id="ajCompany" placeholder="e.g. Valley Hospital"></div>
+      <div class="field"><label for="ajLoc">City (optional)</label><input id="ajLoc" placeholder="e.g. Riverside, CA"></div>
+      <div class="field"><label for="ajUrl">Link (optional)</label><input id="ajUrl" inputmode="url" placeholder="https://…"></div>
+      <div class="field full"><label for="ajDesc">Job description</label><textarea id="ajDesc" placeholder="Paste the job post here: duties, requirements, pay, schedule…"></textarea></div>
+    </div>
+    <div class="actions"><button class="btn btn-primary btn-sm" type="button" data-addgo>Write my resume</button><span class="small muted" id="ajStatus" aria-live="polite"></span></div>`, (dlg, close) => {
+    let busy = false;
+    dlg.querySelector("[data-addgo]").addEventListener("click", async () => {
+      if (busy) return;
+      const v = (id) => $("#" + id, dlg).value.trim();
+      const title = v("ajTitle"), company = v("ajCompany"), description = v("ajDesc");
+      if (!title || !company) return ($("#ajStatus", dlg).textContent = "Add the job title and employer.");
+      if (description.length < 60) return ($("#ajStatus", dlg).textContent = "Paste the job description so I know what they're looking for.");
+      const key = "j" + hash(norm(company) + "|" + norm(title) + "|" + norm(v("ajLoc")));
+      if (state.jobs.some((j) => j.key === key)) return ($("#ajStatus", dlg).textContent = "That job is already in your list.");
+      const [lo, hi] = payParse(description);
+      const payText = lo ? `$${lo}${hi ? " - $" + hi : ""}${lo < 200 ? " an hour" : " a year"}` : "";
+      const job = { title, company, location: v("ajLoc"), url: safeUrl(v("ajUrl")), description: description.slice(0, 9000), payText, payMin: lo, payMax: hi, posted: "", type: "", jobId: "", via: "You added this", key };
+      busy = true; $("#ajStatus", dlg).textContent = "Writing your resume… this takes about a minute.";
+      ky("working", "On it!", `Writing your resume for ${title} at ${company}.`);
+      try {
+        const sc = score(job, state.profile);
+        if (!sc.tier) { sc.tier = "B"; sc.roleLabel = "Your pick"; }
+        const r = await cap.sample.json(tailorPrompt(state.profile, job, sc), { cache: false });
+        const removed = factCheck(r, state.profile);
+        await store.saveJob({ ...job, ...sc, foundAt: new Date().toISOString(), source: "manual", seen: true, status: "new", resume: r, removedFacts: removed });
+        close(); kyConfetti();
+        ky("happy", "Added!", `Your resume for ${title} at ${company} is ready. It's in Your jobs.`);
+        setTimeout(() => document.querySelector(`.job[data-key="${key}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
+      } catch (e) {
+        busy = false; $("#ajStatus", dlg).textContent = friendly(e, "I couldn't write that one. Try again in a moment.");
+        ky(null, "Hmm", "I couldn't write that resume. Let's try again in a moment.");
+      }
+    });
+  });
+}
+
 function openAlerts() {
   const on = state.alerts?.on;
   const msg = on ? "Ky, please turn off my job alerts." : `Ky, please turn on my job alerts for ZIP code ${state.zip || "(my ZIP)"}.`;
@@ -2034,6 +2196,7 @@ function renderPrefs() {
   const on = state.prefs.roles?.length ? state.prefs.roles : DEFAULT_ROLES;
   $("#roles").innerHTML = ROLE_OPTIONS.map(([id, label]) => `<button type="button" data-role="${id}" aria-pressed="${on.includes(id)}">${esc(label)}</button>`).join("");
   $("#sched").innerHTML = SCHEDULES.map(([id, l]) => `<button type="button" role="radio" data-sched="${id}" aria-checked="${state.prefs.schedule === id}">${l}</button>`).join("");
+  $("#webPref").innerHTML = `<button type="button" data-web aria-pressed="${!!state.prefs.web}">Also search the whole web every morning</button>`;
   $("#shifts").innerHTML = SHIFT_OPTIONS.map(([id, l]) => `<button type="button" data-shift="${id}" aria-pressed="${state.prefs.shifts.includes(id)}">${l}</button>`).join("");
 }
 
@@ -2201,7 +2364,7 @@ function chatContext() {
     zip: state.zip || "not set",
     search_preferences: { job_types: (state.prefs.roles?.length ? state.prefs.roles : DEFAULT_ROLES).map((id) => ROLE_OPTIONS.find((r) => r[0] === id)?.[1]), schedule: state.prefs.schedule, shifts_she_can_work: state.prefs.shifts },
     jobs: [...state.jobs].sort((a, b) => String(b.foundAt).localeCompare(String(a.foundAt))).slice(0, 15).map((j) => ({
-      key: j.key, title: j.title, employer: j.company, location: j.location, pay: j.payText || "not listed",
+      key: j.key, title: j.title, employer: j.company, location: j.location, pay: j.payText || "not listed", found_on: j.via || "Indeed",
       status: STATUS_LABEL[j.status || "new"], applied_on: j.appliedOn || null, followed_up_on: j.followedUpOn || null, badges: j.badges, missing_requirements: j.missing,
       patient_care_rating: clinWord(j.clinical), fit: fitWord(j), red_flags: j.flags,
     })),
@@ -2313,6 +2476,11 @@ function wireV2() {
     state.prefs.roles = [...on]; renderPrefs(); savePrefsSoon();
   });
   $("#sched").addEventListener("click", (e) => { const b = e.target.closest("[data-sched]"); if (!b) return; state.prefs.schedule = b.dataset.sched; renderPrefs(); savePrefsSoon(); });
+  $("#webPref").addEventListener("click", (e) => {
+    if (!e.target.closest("[data-web]")) return;
+    state.prefs.web = !state.prefs.web; renderPrefs(); savePrefsSoon();
+    toast(state.prefs.web ? (state.alerts?.on ? "Your morning check will search the whole web too." : "Turn on job alerts below, and the morning check will search the whole web too.") : "Morning checks will search Indeed and ZipRecruiter.");
+  });
   $("#shifts").addEventListener("click", (e) => {
     const b = e.target.closest("[data-shift]"); if (!b) return;
     const s = new Set(state.prefs.shifts); s.has(b.dataset.shift) ? s.delete(b.dataset.shift) : s.add(b.dataset.shift);
@@ -2406,6 +2574,8 @@ function wire() {
   $("#start").addEventListener("click", startSearch);
   $("#stop").addEventListener("click", () => state.abort?.abort());
   $("#alertsBtn").addEventListener("click", openAlerts);
+  $("#webBtn").addEventListener("click", openWebSearch);
+  $("#addJobBtn").addEventListener("click", openAddJob);
   $("#filters").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-f]"); if (!b) return;
     state.filter = b.dataset.f; $("#filters").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); renderJobs();
@@ -2481,7 +2651,7 @@ async function boot() {
       state.resumeHash = hash(state.resumeText); state.profile = shapeProfile(s.profile); state.profileHash = state.profile ? str(s.profileHash) : "";
     }
     state.alerts = s.alerts || null;
-    if (s.prefs) state.prefs = { roles: s.prefs.roles || null, schedule: s.prefs.schedule || "any", shifts: s.prefs.shifts || [] };
+    if (s.prefs) state.prefs = { roles: s.prefs.roles || null, schedule: s.prefs.schedule || "any", shifts: s.prefs.shifts || [], web: !!s.prefs.web };
     if (s.template && TPL[s.template]) state.template = s.template;
     state.hoursGoal = s.hoursGoal || null;
     $("#zip").value = state.zip;

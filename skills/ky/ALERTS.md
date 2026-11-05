@@ -16,16 +16,18 @@ This runs on a schedule in a fresh session. Nobody is watching, so don't ask que
 
 3. **Search Indeed.** Get her search terms with `ky terms --roles <prefs.roles joined by commas>` (leave `--roles` off if she has no `prefs.roles`). Search once per term with the Indeed connector: `country_code: "US"`, `location: <zip>`, plus `job_type: <prefs.schedule>` when it is `parttime` or `fulltime`.
    Save each result's text to `search_1.md`, `search_2.md`, … exactly as returned.
+   - **ZipRecruiter:** if the ZipRecruiter connector is available, search it once per term too (her ZIP as the location). Turn its listings into a JSON list in the `jobs.json` shape from `skills/ky/WEBSEARCH.md` step 5 (`"source": "ZipRecruiter"`, `"via": "ZipRecruiter"`) and save it as `zip_jobs.json`.
+   - **The whole web:** only if `prefs.web` is true, do a short web search (about 5 queries and up to 10 postings) following `skills/ky/WEBSEARCH.md` steps 3 to 5, and save those as `web_jobs.json`.
 
 4. **Score and rank:**
    ```
-   ky score search_*.md --profile profile.json --seen seen.json --limit 8 [--shifts <prefs.shifts joined by commas>] > ranked.json
+   ky score search_*.md [zip_jobs.json] [web_jobs.json] --profile profile.json --seen seen.json --limit 8 [--shifts <prefs.shifts joined by commas>] > ranked.json
    ```
    Drop anything with red flags other than "Posting is over 45 days old".
 
-5. **Read details** for the top jobs (up to `count`, at most 5) with the Indeed connector's `get_job_details` (`job_id` = the job's `external_id`). Save each to `detail_<n>.md`, then re-score them all together:
+5. **Read details** for the top Indeed jobs (up to `count`, at most 5) with the Indeed connector's `get_job_details` (`job_id` = the job's `external_id`). Save each to `detail_<n>.md`. ZipRecruiter and web jobs already have their descriptions. Re-score them all together:
    ```
-   ky score detail_*.md --profile profile.json --seen seen.json --limit <count, max 5> [--shifts ...] > top.json
+   ky score detail_*.md [zip_jobs.json] [web_jobs.json] --profile profile.json --seen seen.json --limit <count, max 5> [--shifts ...] > top.json
    ```
    If nothing is left, skip to step 8.
 
@@ -39,7 +41,7 @@ This runs on a schedule in a fresh session. Nobody is watching, so don't ask que
    ```json
    {
      "key": "<key>", "title": "<title>", "company": "<employer>", "location": "<location>",
-     "jobId": "<external_id>", "posted": "<posted>", "type": "<schedule>",
+     "jobId": "<external_id>", "posted": "<posted>", "type": "<schedule>", "via": "<via>",
      "payText": "<pay as listed, e.g. $20 - $27 an hour>", "payMin": <pay_min>, "payMax": <pay_max>,
      "url": "<url>", "description": "<description, first 9000 characters>",
      "tier": "<tier>", "roleLabel": "<role_label>", "setting": "",

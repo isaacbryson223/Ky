@@ -121,8 +121,23 @@ STUB = r"""
   window.__jobs = () => (window.__db ? [...window.__db].filter(([k]) => k.startsWith("jobs/")).map(([k, v]) => ({ ...v, key: k.slice(5) })) : JSON.parse(localStorage.getItem("ky.jobs")));
   window.__settings = () => (window.__db ? window.__db.get("settings/main") : JSON.parse(localStorage.getItem("ky.settings")));
   window.__saved = []; window.__sampleCalls = 0;
+  // ZipRecruiter answers with JSON (a shape the page has to find on its own); with --db it's connected,
+  // without it it isn't, so both paths get exercised.
+  const ZIP_JOBS = { total: 1, jobs: [{ name: "Patient Care Assistant", hiring_company: { name: "Example Medical Center" }, location: "Riverside, CA",
+    url: "https://example.com/zr/1", snippet: "Hospital role: take vital signs, help patients with ADLs and safe transfers. BLS required.",
+    salary_min: 20, salary_max: 24, salary_interval: "hourly", posted_time: "2026-11-02" }] };
+  window.__zipArgs = [];
   const mcp = {
+    async describeTool(server, tool) {
+      if (server === "ZipRecruiter") return { name: "search_jobs", description: "", inputSchema: { type: "object", properties: { search: { type: "string" }, location: { type: "string" } } } };
+      throw { code: "bad_request" };
+    },
     async callTool(server, tool, input) {
+      if (server === "ZipRecruiter") {
+        if (!%(usedb)s) throw { code: "server_not_connected", message: "not connected" };
+        window.__zipArgs.push(input);
+        return { content: [{ type: "text", text: JSON.stringify(ZIP_JOBS) }], payload: ZIP_JOBS };
+      }
       if (tool === "search_jobs") return { content: [], payload: { result: FIX.search } };
       if (tool === "get_job_details") return { content: [], payload: { result: FIX.details[input.job_id] || FIX.details.default } };
       throw { code: "tool_error", message: "unknown" };
@@ -212,6 +227,12 @@ async def main(libs: Path, shots: Path | None, chrome: str = "/usr/bin/google-ch
         ok("CNA" not in r0["certifications"], "fact check removed the invented CNA certification")
         ok(all("Epic" not in b for b in r0["experience"][0]["bullets"]), "fact check removed the invented Epic bullet")
         ok(len(stored[0]["removedFacts"]) >= 2, "removed facts are recorded for her")
+        ptxt = await page.inner_text("#progress")
+        if usedb:
+            ok("Found 5 new listings" in ptxt, "ZipRecruiter listings are added to Indeed's")
+            ok(all(a.get("search") and a.get("location") == "92501" for a in await page.evaluate("window.__zipArgs")), "ZipRecruiter gets the right search and ZIP")
+        else:
+            ok("Found 4 new listings" in ptxt and "searched Indeed only" in ptxt, "search carries on, and says so, when ZipRecruiter isn't connected")
         card = await page.locator(".job").first.inner_text()
         ok("Skills match" in card, "job card shows the skills match")
         ok(await page.locator(".job .reasons").count() >= 1, "job card explains why it was picked")
@@ -249,6 +270,21 @@ async def main(libs: Path, shots: Path | None, chrome: str = "/usr/bin/google-ch
         ok(any(f.endswith("_Resume.pdf") for f in names) and any(f.endswith("_Resume.docx") for f in names) and any(f.endswith("Cover_Letter.docx") for f in names) and any(f.endswith("Cover_Letter.pdf") for f in names), f"resume and cover letter files saved: {names}")
         ok(all(s["size"] and s["size"] > 1500 for s in saved), "saved files are not empty")
         await page.click(".dialog [data-close]")
+
+        # 3. search the whole web (hands off to the chat) and add a job she found
+        await page.click("#webBtn")
+        ok("near 92501" in await page.input_value("#webMsg"), "whole-web search gives her a message with her ZIP to paste")
+        await page.click(".dialog [data-close]")
+        await page.click("#addJobBtn")
+        await page.fill("#ajTitle", "Nursing Assistant"); await page.fill("#ajCompany", "Example Hills Care Home")
+        await page.fill("#ajUrl", "javascript:alert(1)")
+        await page.fill("#ajDesc", "Help residents with bathing, dressing and meals. Take vital signs. CNA preferred. $20 - $22 an hour.")
+        await page.click("[data-addgo]")
+        await page.wait_for_function("!document.querySelector('#ajTitle')", timeout=10000)
+        await page.wait_for_timeout(500)
+        added = [j for j in await page.evaluate("window.__jobs()") if j["company"] == "Example Hills Care Home"]
+        ok(len(added) == 1 and added[0]["via"] == "You added this" and added[0]["resume"], "a job she found herself gets a tailored resume")
+        ok(added and added[0]["url"] == "", "a non-web link she pastes is not used")
 
         # 4. status + chat with a tool call
         await page.select_option(".job select.status >> nth=0", "hired")

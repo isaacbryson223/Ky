@@ -200,3 +200,13 @@ def test_cert_matching_is_whole_word(profile):
     r = _good_resume()
     r["experience"][0]["bullets"].append("Supported a client with cerebral palsy during daily routines")
     assert factguard.check(r, profile).ok
+
+
+def test_score_accepts_web_jobs_json(tmp_path, capsys):
+    jobs = [{"title": "Patient Care Technician", "employer": "Example Valley Hospital", "location": "Riverside, CA",
+             "url": "https://example.com/careers/1", "description": "Hospital PCT. Take vital signs, assist with ADLs. BLS required.",
+             "posted": "2026-11-03", "pay": "$22 - $26 an hour", "source": "Web", "via": "Example Valley Hospital careers"}]
+    f = tmp_path / "jobs.json"; f.write_text(json.dumps(jobs))
+    assert main(["score", str(f), "--profile", str(ROOT / "profile.example.yaml")]) == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out[0]["via"] == "Example Valley Hospital careers" and out[0]["pay_min"] == 22 and out[0]["tier"] == "A"

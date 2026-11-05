@@ -22,6 +22,7 @@ from .models import Job
 from .profile import Profile, ProfileError
 from .score import rank, score_job
 from .sources import all_sources, load_employers, run_search
+from .sources.base import parse_pay
 from .sources.indeed import parse_details, parse_search
 from .vocab import DEFAULT_ROLES, ROLE_OPTIONS
 
@@ -34,7 +35,13 @@ def _load_jobs(path: Path) -> list[Job]:
             if "result" in data:
                 return parse_search(data["result"]) or [parse_details(data["result"])]
             data = data.get("jobs", [])
-        return [Job.from_dict(d) for d in data]
+        jobs = []
+        for d in data:
+            j = Job.from_dict(d)
+            if j.pay_min is None and d.get("pay"):  # pay written as text, e.g. "$21 - $24 an hour"
+                j.pay_min, j.pay_max, j.pay_period = parse_pay(str(d["pay"]))
+            jobs.append(j)
+        return jobs
     # Indeed connector markdown; details blocks start with "### "
     chunks = [c for c in text.split("\n### ") if c.strip()]
     if len(chunks) > 1 or text.lstrip().startswith("###"):

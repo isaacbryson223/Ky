@@ -23,6 +23,7 @@ class Job:
     schedule: str = ""          # e.g. "Full-time", "Per diem", "Nights"
     distance_miles: float | None = None
     external_id: str = ""
+    via: str = ""               # where it was found: Indeed, ZipRecruiter, a hospital site…
     # Filled in by scoring
     clinical_score: int = 0
     fit_score: int = 0

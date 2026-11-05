@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.5
+- Ky searches **ZipRecruiter** as well as Indeed (both free Claude connectors). If ZipRecruiter isn't connected, Ky searches Indeed and says so.
+- **Search the whole web**: a button that hands off to her Claude chat, which checks hospital and clinic career pages, nursing homes and home-care agencies, county, state and VA jobs, and other job sites, then adds the best jobs to her helper with tailored resumes (`skills/ky/WEBSEARCH.md`). Daily alerts can do a short version too ("Also search the whole web every morning").
+- **Add a job I found**: paste any job post (LinkedIn, a hospital site, a flyer) and Ky writes a resume for it.
+- Job cards show where each job came from. The engine accepts web/ZipRecruiter jobs as JSON with pay written as text.
+
 ## v2.4 (fixes from an independent code review)
 - Every resume is fact-checked before it's kept, including the headline and education details; odd-shaped replies from Claude are cleaned up instead of breaking buttons.
 - A failed save no longer makes her job list look empty; Ky retries once and tells her if it still can't save.

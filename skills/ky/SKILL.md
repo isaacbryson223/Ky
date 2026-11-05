@@ -43,13 +43,14 @@ Do these steps without asking her technical questions. Tell her in one friendly 
 
 1. **Get the repo** (see above).
 2. **Check for an existing helper.** List her artifacts and look for one titled "Agent Ky". If it exists, open it and skip to step 6.
-3. **Check Indeed.** Ky searches jobs through Claude's Indeed connector. Search the connector registry for "indeed". If it isn't connected, show her the connector suggestion and say: "Tap Connect on the Indeed card so I can search jobs for you. It's free." Keep going while she does that.
+3. **Check Indeed and ZipRecruiter.** Ky searches jobs through Claude's Indeed and ZipRecruiter connectors. Search the connector registry for each. If either isn't connected, show her the connector suggestion and say: "Tap Connect so I can search jobs for you. It's free." Indeed is the important one; ZipRecruiter adds more jobs. Keep going while she does that.
 4. **Read and publish the helper.** Read all of `helper/ky.html` first. Load the `artifact-design` skill, then publish the file unchanged as an artifact with:
    - `icon`: `search`
    - `description`: "Ky the squirrel finds entry-level patient-care jobs near you and writes a tailored resume for each one."
    - `capabilities` (exactly):
      ```json
-     {"mcp": {"servers": [{"server": "Indeed", "tools": ["search_jobs", "get_job_details"]}]},
+     {"mcp": {"servers": [{"server": "Indeed", "tools": ["search_jobs", "get_job_details"]},
+                          {"server": "ZipRecruiter", "tools": ["search_jobs"]}]},
       "sample": {"images": true},
       "downloads": true,
       "db": {"rules": [{"path": "jobs", "read": "owner", "write": "owner"},
@@ -113,6 +114,10 @@ in, or submit anything.
 
 Confirm in one line. Turning it off works like alerts.
 
+## 3b. Searching the whole web ("Ky, please search the whole web for more jobs…")
+
+Follow `skills/ky/WEBSEARCH.md`. It searches hospital and clinic career pages, public-sector jobs and other job sites, then adds the best jobs to her helper with tailored resumes. Her helper's **Search the whole web** button gives her this message to paste. If she turned on "Also search the whole web every morning" (`prefs.web`), the daily alerts do a shorter version of it.
+
 ## 4. Helping her apply ("Ky, please help me apply to…")
 
 Follow `skills/ky/APPLY.md`. Always give the usage warning first.
@@ -129,6 +134,6 @@ Follow `skills/ky/APPLY.md`. Always give the usage warning first.
 
 ## 6. If something goes wrong
 
-- The helper says Indeed isn't connected → suggest the Indeed connector again.
+- The helper says Indeed isn't connected → suggest the Indeed connector again. If ZipRecruiter isn't connected, the helper searches Indeed only; suggest ZipRecruiter for more jobs.
 - She ran out of Claude usage → "We used a lot of Claude today. Your jobs and resumes are saved. Let's pick up later!"
 - Anything confusing → one calm sentence about what happened and one thing to try.

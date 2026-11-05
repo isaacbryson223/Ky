@@ -14,14 +14,14 @@ Hi Claude! Please open my job helper, Agent Ky 🐿️. I'm not technical, so pl
    - If mine is older, read it, then republish the repo file to that same artifact URL so my saved jobs and hours stay.
 
 3. If I don't have one, publish helper/ky.html as a new artifact. Use the icon "search", the description "Ky the squirrel finds entry-level patient-care jobs near me and writes a tailored resume for each one.", and exactly these capabilities:
-{"mcp":{"servers":[{"server":"Indeed","tools":["search_jobs","get_job_details"]}]},"sample":{"images":true},"downloads":true,"db":{"rules":[{"path":"jobs","read":"owner","write":"owner"},{"path":"settings","read":"owner","write":"owner"},{"path":"hours","read":"owner","write":"owner"}]}}
+{"mcp":{"servers":[{"server":"Indeed","tools":["search_jobs","get_job_details"]},{"server":"ZipRecruiter","tools":["search_jobs"]}]},"sample":{"images":true},"downloads":true,"db":{"rules":[{"path":"jobs","read":"owner","write":"owner"},{"path":"settings","read":"owner","write":"owner"},{"path":"hours","read":"owner","write":"owner"}]}}
 Keep it private and don't share it.
 
-4. Ky finds jobs through Claude's Indeed connector. If Indeed isn't connected for me, show me the button to connect it.
+4. Ky finds jobs through Claude's Indeed and ZipRecruiter connectors. If either isn't connected for me, show me the button to connect it.
 
 5. Open Ky for me. Then reply with only a short, friendly hello from Ky and these three steps: add my resume, type my ZIP code, then pick how many jobs and tap "Start the search". Remind me to tap "Allow" when Claude asks if Ky can use Indeed and Claude.
 
-If something doesn't work, tell me in one simple sentence what to do. For anything else I ask later (job alerts, help applying), follow skills/ky/SKILL.md in the same repo.
+If something doesn't work, tell me in one simple sentence what to do. For anything else I ask later (searching the whole web, job alerts, help applying), follow skills/ky/SKILL.md in the same repo.
 ```
 
 Ky will pop up as a little squirrel helper. Then:
@@ -33,6 +33,8 @@ Ky will pop up as a little squirrel helper. Then:
 When Claude asks whether Ky can use Indeed and Claude, tap **Allow**.
 
 Ky finds entry-level healthcare jobs near you that give real patient-care hours, then writes a resume and cover letter for each one. Tap **Download PDF** to save a resume, then **Open job posting** to apply.
+
+**Want more jobs?** Tap **Search the whole web** and Ky will also check hospital and clinic websites, county, state and VA jobs, and other job sites. Found one yourself? Tap **Add a job I found**, paste the job post, and Ky writes a resume for it.
 
 **Have a question?** Tap **Ask Ky** in the bottom corner. Ask anything about applying, interviews, certifications, or patient-care hours. You can even say "I worked 8 hours at Sunrise today" and Ky will add it to your hours log.
 
@@ -48,7 +50,7 @@ Ky finds entry-level healthcare jobs near you that give real patient-care hours,
 
 Before she starts, check that her Claude account can:
 
-- **Connect Indeed**: Ky searches jobs through Claude's Indeed connector. Ky will show her a Connect button if it's missing.
+- **Connect Indeed and ZipRecruiter**: Ky searches jobs through these two Claude connectors (both free; ZipRecruiter needs no sign-in). Ky will show her a Connect button if one is missing.
 - **Run scheduled tasks**: needed for the daily job alerts.
 - **Use Claude in Chrome** (optional): only needed if she wants Ky to help fill in applications.
 
