@@ -16,6 +16,8 @@ Ky pops up as a little helper with three steps:
 2. **Type your ZIP code**
 3. **Pick how many jobs** to find right now, then tap **Start the search**
 
+<p align="center"><img src="assets/screenshot.png" width="460" alt="Ky's helper with next steps, the three setup steps, and the Ask Ky button (example data)"></p>
+
 You get a list of jobs near you, each with:
 
 - **Patient-care hours** rating (how hands-on the job is) and **fit** rating (do you qualify)

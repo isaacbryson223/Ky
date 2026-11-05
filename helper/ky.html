@@ -610,6 +610,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
    Helpers
    =================================================================== */
 const $ = (s, el = document) => el.querySelector(s);
+const safeUrl = (u) => (/^https?:\/\//i.test(String(u || "").trim()) ? String(u).trim() : "");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const norm = (s) => String(s ?? "").toLowerCase().replace(/\(.*?\)/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -1564,7 +1565,7 @@ function jobCard(j) {
     ${why}
     <div class="actions">
       ${resumeBtns}
-      ${j.url ? `<a class="btn btn-teal btn-sm" href="${esc(j.url)}" target="_blank" rel="noopener">Open job posting</a>` : ""}
+      ${safeUrl(j.url) ? `<a class="btn btn-teal btn-sm" href="${esc(safeUrl(j.url))}" target="_blank" rel="noopener">Open job posting</a>` : ""}
     </div>
     <div class="actions">
       ${extra}
@@ -1599,7 +1600,7 @@ function renderNext() {
   if (todo.length) {
     const j = todo[0];
     items.push([`Apply to <b>${esc(j.title)}</b> at ${esc(j.company)}. It's your best match right now${todo.length > 1 ? `, and ${todo.length - 1} more ${todo.length === 2 ? "is" : "are"} waiting` : ""}.`,
-      `<button class="btn btn-primary btn-sm" data-act="preview" data-key="${j.key}">See my resume</button>${j.url ? ` <a class="btn btn-soft btn-sm" href="${esc(j.url)}" target="_blank" rel="noopener">Open job posting</a>` : ""}`]);
+      `<button class="btn btn-primary btn-sm" data-act="preview" data-key="${j.key}">See my resume</button>${safeUrl(j.url) ? ` <a class="btn btn-soft btn-sm" href="${esc(safeUrl(j.url))}" target="_blank" rel="noopener">Open job posting</a>` : ""}`]);
   }
   if (jobs.length && !state.alerts?.on) items.push(["Want me to check for new jobs every morning?", `<button class="btn btn-soft btn-sm" data-act="alerts">Turn on job alerts</button>`]);
   $("#nextSteps").hidden = !items.length;
@@ -1800,7 +1801,7 @@ function openApply(j) {
     <p><b>The fastest way:</b> download your tailored resume, open the job posting, and apply yourself. It usually takes 5 to 10 minutes.</p>
     <div class="actions">
       ${j.resume ? `<button class="btn btn-primary btn-sm" data-dl="pdf">Download my resume</button>` : ""}
-      ${j.url ? `<a class="btn btn-teal btn-sm" href="${esc(j.url)}" target="_blank" rel="noopener">Open the job posting</a>` : ""}
+      ${safeUrl(j.url) ? `<a class="btn btn-teal btn-sm" href="${esc(safeUrl(j.url))}" target="_blank" rel="noopener">Open the job posting</a>` : ""}
     </div>
     <div class="notice warn"><div><b>Want me to fill in the application for you?</b>
       I can try, using Claude in your Chrome browser. Before you choose this:

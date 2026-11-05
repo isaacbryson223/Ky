@@ -259,6 +259,11 @@ async def main(libs: Path, shots: Path | None) -> int:
 
         ok(not errors, f"no page errors: {errors}")
         if shots:
+            await page.wait_for_timeout(3500)  # let toasts and acorns finish
+            await page.evaluate("window.scrollTo(0, 0)")
+            await page.set_viewport_size({"width": 900, "height": 1500})
+            await page.screenshot(path=str(shots / "readme.png"))
+            await page.set_viewport_size({"width": 1000, "height": 1400})
             await page.screenshot(path=str(shots / "full.png"), full_page=True)
             await page.emulate_media(color_scheme="dark"); await page.set_viewport_size({"width": 400, "height": 900})
             await page.wait_for_timeout(300)
