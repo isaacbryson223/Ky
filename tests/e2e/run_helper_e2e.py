@@ -102,8 +102,9 @@ STUB = r"""
   };
   async function sample(input, opts = {}) {
     window.__sampleCalls++;
-    let text = "Here's what I know! **Patient-care experience** is hands-on work.\n- Log every shift\n- Keep your supervisor's contact";
-    if (opts.tools) {
+    let text = "Great question! **Patient-care experience** is hands-on work with patients, like taking vital signs or helping with bathing and meals.\n- Log every shift\n- Keep your supervisor's contact\n- Check each school's admissions page";
+    const last = Array.isArray(input) ? input[input.length - 1].content : String(input);
+    if (opts.tools && /worked/i.test(last)) {
       const t = opts.tools.find((x) => x.name === "log_hours");
       if (t) { await t.execute({ place: "Sunrise Home Care", hours: 6, kind: "direct" }, { signal: new AbortController().signal }); text = "Logged 6 hours at Sunrise Home Care for you!"; }
     }
@@ -169,7 +170,10 @@ async def main(libs: Path, shots: Path | None) -> int:
         ok("CNA" not in r0["certifications"], "fact check removed the invented CNA certification")
         ok(all("Epic" not in b for b in r0["experience"][0]["bullets"]), "fact check removed the invented Epic bullet")
         ok(len(stored[0]["removedFacts"]) >= 2, "removed facts are recorded for her")
-        ok("Skills match" in await page.locator(".job").first.inner_text(), "job card shows the skills match")
+        card = await page.locator(".job").first.inner_text()
+        ok("Skills match" in card, "job card shows the skills match")
+        ok(await page.locator(".job .reasons").count() >= 1, "job card explains why it was picked")
+        ok("Apply to" in await page.inner_text("#nextList"), "next steps suggest the best job to apply to")
 
         # 2. preview, designs, downloads
         await page.locator('[data-act="preview"]').first.click()
@@ -182,11 +186,11 @@ async def main(libs: Path, shots: Path | None) -> int:
         await page.click('[data-tab="m"]')
         ok("Matches" in await page.locator('[data-pane="m"]').inner_text(), "job match tab shows the ATS report")
         ok(await page.locator('[data-pane="m"] .checks li').count() == 5, "format checks listed")
-        await page.click('[data-tab="c"]'); await page.click('[data-dl="letter"]')
+        await page.click('[data-tab="c"]'); await page.click('[data-dl="letter"]'); await page.click('[data-dl="letterpdf"]')
         await page.wait_for_timeout(500)
         saved = await page.evaluate("window.__saved")
         names = [s["filename"] for s in saved]
-        ok(any(f.endswith("_Resume.pdf") for f in names) and any(f.endswith("_Resume.docx") for f in names) and any("Cover_Letter" in f for f in names), f"PDF, Word and cover letter saved: {names}")
+        ok(any(f.endswith("_Resume.pdf") for f in names) and any(f.endswith("_Resume.docx") for f in names) and any(f.endswith("Cover_Letter.docx") for f in names) and any(f.endswith("Cover_Letter.pdf") for f in names), f"resume and cover letter files saved: {names}")
         ok(all(s["size"] and s["size"] > 1500 for s in saved), "saved files are not empty")
         await page.click(".dialog [data-close]")
 
@@ -205,7 +209,11 @@ async def main(libs: Path, shots: Path | None) -> int:
         await page.click("#fab")
         ok(await page.locator("#chatChips button").count() >= 4, "chat shows suggested questions")
         await page.locator("#chatChips button").first.click()
-        await page.wait_for_function("!document.querySelector('#chatStop') || document.querySelector('#chatStop').hidden", timeout=10000)
+        await page.wait_for_function("document.querySelector('#chatStop').hidden", timeout=10000)
+        ok(await page.locator("#chatLog [data-copymsg]").count() == 1, "long answers get a Copy button")
+        await page.fill("#chatIn", "I worked 6 hours at Sunrise today")
+        await page.press("#chatIn", "Enter")
+        await page.wait_for_function("document.querySelector('#chatStop').hidden && document.querySelectorAll('#chatLog .msg.me').length === 2", timeout=10000)
         log = await page.locator("#chatLog").inner_text()
         ok("Logged 6 hours" in log, "chat tool logged hours and showed a note")
         ok(await page.locator("#chatLog [data-undo]").count() == 1, "chat note has Undo")
@@ -229,6 +237,11 @@ async def main(libs: Path, shots: Path | None) -> int:
         ok(not errors, f"no page errors: {errors}")
         if shots:
             await page.screenshot(path=str(shots / "full.png"), full_page=True)
+            await page.emulate_media(color_scheme="dark"); await page.set_viewport_size({"width": 400, "height": 900})
+            await page.wait_for_timeout(300)
+            await page.screenshot(path=str(shots / "phone_dark.png"), full_page=True)
+            wide = await page.evaluate("document.documentElement.scrollWidth")
+            ok(wide <= 400, f"no sideways scrolling at phone width (page is {wide}px wide)")
         await browser.close()
     print(f"\n{len(problems)} problem(s)")
     return 1 if problems else 0

@@ -310,6 +310,17 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
 .chat-note { font-size: .75rem; color: var(--muted); padding: 0 14px 10px; text-align: center; }
 
 /* Ky's moves */
+.ky .paw-r { transform-origin: 100px 134px; }
+.ky.wave .paw-r { animation: wave 1.2s ease-in-out; }
+@keyframes wave { 0%, 100% { transform: translate(0, 0) rotate(0); } 20% { transform: translate(14px, -26px) rotate(-20deg); } 40% { transform: translate(14px, -26px) rotate(18deg); } 60% { transform: translate(14px, -26px) rotate(-18deg); } 80% { transform: translate(14px, -26px) rotate(10deg); } }
+.ky:hover .tail { animation-duration: 1s; }
+.ky.working .acorn { animation: nibble .45s ease-in-out infinite; transform-origin: 92px 136px; }
+@keyframes nibble { 50% { transform: translateY(-3px) rotate(-6deg); } }
+.next-list { display: flex; flex-direction: column; gap: 10px; }
+.next { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); flex-wrap: wrap; }
+.next p { flex: 1 1 260px; min-width: 0; }
+.reasons { font-size: .85rem; color: var(--muted); }
+.copy-msg { align-self: flex-start; margin-top: -6px; border: 0; background: none; color: var(--teal); font-weight: 700; font-size: .8rem; cursor: pointer; padding: 2px 4px; }
 .kywrap { position: relative; width: 150px; height: 150px; }
 .ky { cursor: pointer; overflow: visible; transform-origin: 50% 75%; -webkit-tap-highlight-color: transparent; border-radius: 50%; }
 .ky:focus { outline: none; }
@@ -352,7 +363,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
 .fab.peek .face { animation: peek 1.1s ease-in-out; }
 @keyframes peek { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-14deg); } 50% { transform: rotate(12deg); } 75% { transform: rotate(-6deg); } }
 @media (prefers-reduced-motion: reduce) {
-  .ky.jump, .ky.spin, .ky.wiggle, .ky.stretch, .runner, .runner .face, .fab.peek .face, .zz i, .heart { animation: none !important; }
+  .ky.jump, .ky.spin, .ky.wiggle, .ky.stretch, .ky.wave .paw-r, .ky.working .acorn, .runner, .runner .face, .fab.peek .face, .zz i, .heart { animation: none !important; }
   .runner { left: 8px; }
   .zz i { opacity: 1; position: static; }
 }
@@ -397,7 +408,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
         <path d="M86 105 Q89 109 92 105 Q95 109 98 105" stroke="var(--eye)" stroke-width="2" fill="none" stroke-linecap="round"/>
         <!-- paws -->
         <ellipse cx="80" cy="128" rx="9" ry="7" fill="var(--fur)" stroke="var(--fur-deep)" stroke-width="2"/>
-        <ellipse cx="104" cy="128" rx="9" ry="7" fill="var(--fur)" stroke="var(--fur-deep)" stroke-width="2"/>
+        <g class="paw-r"><ellipse cx="104" cy="128" rx="9" ry="7" fill="var(--fur)" stroke="var(--fur-deep)" stroke-width="2"/></g>
         <g class="acorn">
           <ellipse cx="92" cy="136" rx="9" ry="10" fill="#D9A15B"/>
           <path d="M82 129 Q92 120 102 129 Q92 133 82 129 Z" fill="#7A4A26"/>
@@ -414,6 +425,11 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
   </header>
 
   <div id="envNotice" class="notice warn" hidden></div>
+
+  <section class="panel" id="nextSteps" hidden aria-labelledby="nextTitle">
+    <h2 id="nextTitle">Your next steps</h2>
+    <div class="next-list" id="nextList"></div>
+  </section>
 
   <!-- Setup -->
   <section class="panel" aria-labelledby="setupTitle">
@@ -933,6 +949,19 @@ const DEFAULT_ROLES = ROLE_OPTIONS.filter((r) => r[3]).map((r) => r[0]);
 const SCHEDULES = [["any", "Any"], ["parttime", "Part-time"], ["fulltime", "Full-time"]];
 const SHIFT_OPTIONS = [["days", "Days"], ["evenings", "Evenings"], ["nights", "Nights"], ["weekends", "Weekends"]];
 const SHIFT_WORDS = { days: ["day shift", "days", "7a-7p", "7am-7pm", "7a-3p"], evenings: ["evening", "pm shift", "3p-11p", "swing"], nights: ["night", "noc", "7p-7a", "7pm-7am", "11p-7a"], weekends: ["weekend"] };
+const SNIFF_LINES = ["Sniff, sniff…", "Checking hospitals…", "Peeking at nursing homes…", "Looking under every leaf…", "Asking around the clinics…", "Almost there…"];
+// Run fn over items, `limit` at a time; stops starting new ones after an error or Stop.
+async function runPool(items, limit, fn, signal) {
+  let next = 0, failed = false;
+  const worker = async () => {
+    while (next < items.length && !failed) {
+      if (signal?.aborted) throw { code: "cancelled" };
+      const i = next++;
+      try { await fn(items[i], i); } catch (e) { failed = true; throw e; }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+}
 function searchTerms() {
   const on = state.prefs.roles?.length ? state.prefs.roles : DEFAULT_ROLES;
   return ROLE_OPTIONS.filter((r) => on.includes(r[0])).flatMap((r) => r[2]);
@@ -1108,9 +1137,9 @@ async function startSearch() {
     const found = new Map();
     const terms = searchTerms();
     kyScurry();
-    for (const [i, term] of terms.entries()) {
-      if (signal.aborted) throw { code: "cancelled" };
-      progress("search", `Searching Indeed (${i + 1} of ${terms.length}): ${term} jobs near ${state.zip}`);
+    let searched = 0;
+    progress("search", `Searching Indeed for ${terms.length} kinds of jobs near ${state.zip}`);
+    await runPool(terms, 3, async (term) => {
       const input = { search: term, location: state.zip, country_code: "US" };
       if (state.prefs.schedule !== "any") input.job_type = state.prefs.schedule;
       const md = await indeed("search_jobs", input, signal);
@@ -1118,7 +1147,10 @@ async function startSearch() {
         const key = "j" + hash(norm(j.company) + "|" + norm(j.title) + "|" + norm(j.location));
         if (!found.has(key) && !known.has(key)) found.set(key, { ...j, key });
       }
-    }
+      searched++;
+      progress("search", `Searched ${searched} of ${terms.length} job types, ${found.size} new listings so far`);
+      ky("working", SNIFF_LINES[searched % SNIFF_LINES.length], `Checking ${term} jobs near ${state.zip}…`);
+    }, signal);
     let pool = [...found.values()].map((j) => ({ j, s: score(j, p) })).filter((x) => x.s.tier && !serious(x.s));
     progress("search", `Found ${found.size} new listings, ${pool.length} are entry-level patient-care jobs`, "done");
     if (!pool.length) {
@@ -1129,23 +1161,26 @@ async function startSearch() {
     pool = pool.slice(0, Math.min(state.count + 4, 14));
 
     // read full descriptions for the best candidates, then re-score
-    for (const [i, x] of pool.entries()) {
-      if (signal.aborted) throw { code: "cancelled" };
-      progress("details", `Reading job details (${i + 1} of ${pool.length})`);
-      try {
-        const d = parseDetails(await indeed("get_job_details", { job_id: x.j.jobId }, signal));
-        if (d.description) { x.j.description = d.description.slice(0, 9000); x.j.url = d.url || x.j.url; }
-      } catch (e) { if (e instanceof ConnectorProblem) throw e; }
+    let read = 0, fails = 0;
+    progress("details", `Reading job details (0 of ${pool.length})`);
+    await runPool(pool, 3, async (x) => {
+      if (!(fails >= 2 && read === 0)) {  // if details keep failing, rank from the listings instead
+        try {
+          const d = parseDetails(await indeed("get_job_details", { job_id: x.j.jobId }, signal));
+          if (d.description) { x.j.description = d.description.slice(0, 9000); x.j.url = d.url || x.j.url; read++; } else fails++;
+        } catch (e) { if (e instanceof ConnectorProblem || e?.code === "cancelled") throw e; fails++; }
+      }
       x.s = score(x.j, p);
-    }
+      progress("details", `Reading job details (${read + fails} of ${pool.length})`);
+    }, signal);
     pool = pool.filter((x) => x.s.tier && !serious(x.s)).sort((a, b) => (b.s.clinical + b.s.fit) - (a.s.clinical + a.s.fit)).slice(0, state.count);
     progress("details", `Picked your top ${pool.length} job${pool.length === 1 ? "" : "s"}`, "done");
 
-    let made = 0;
-    for (const [i, x] of pool.entries()) {
-      if (signal.aborted) throw { code: "cancelled" };
-      progress("tailor", `Writing resume ${i + 1} of ${pool.length}: ${x.j.title} at ${x.j.company}`);
-      ky("working", `Writing resume ${i + 1} of ${pool.length}`, `Tailoring your resume for ${x.j.title} at ${x.j.company}.`);
+    let made = 0, started = 0;
+    progress("tailor", `Writing your resumes (0 of ${pool.length} done)`);
+    await runPool(pool, 2, async (x) => {
+      started++;
+      ky("working", `Writing resume ${started} of ${pool.length}`, `Tailoring your resume for ${x.j.title} at ${x.j.company}.`);
       let tailored = null, removed = [];
       try {
         tailored = await cap.sample.json(tailorPrompt(p, x.j, x.s), { signal, cache: false });
@@ -1159,8 +1194,9 @@ async function startSearch() {
         ...x.j, ...x.s, key: x.j.key, foundAt: new Date().toISOString(), source: "helper", seen: true, status: "new",
         resume: tailored, removedFacts: removed,
       });
-      if (tailored) made++;
-    }
+      if (tailored) { made++; heart(); }
+      progress("tailor", `Writing your resumes (${made} of ${pool.length} done)`);
+    }, signal);
     progress("tailor", `Wrote ${made} tailored resume${made === 1 ? "" : "s"}`, "done");
     kyConfetti();
     ky("happy", "Ta-da!", `I found ${pool.length} job${pool.length === 1 ? "" : "s"} near you and wrote a resume for ${made === pool.length ? "each one" : made + " of them"}. They're below. Download a resume, open the job, and apply when you're ready!`);
@@ -1381,6 +1417,22 @@ function buildLetterDOCX(job, r, p) {
   return Packer.toBlob(new Document({ creator: p.name, sections: [{ children: ps }] }));
 }
 
+function buildLetterPDF(job, r, p) {
+  const { jsPDF } = window.jspdf; const doc = new jsPDF({ unit: "pt", format: "letter" });
+  const M = 72, W = 612 - 2 * M; let y = M;
+  doc.setProperties({ title: `${p.name} Cover Letter`, author: p.name });
+  doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(30, 38, 36); doc.text(p.name, M, y);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(91, 103, 100);
+  y += 16; doc.text([p.location, p.contact?.phone, p.contact?.email].filter(Boolean).join("  ·  "), M, y);
+  y += 32; doc.setTextColor(30, 38, 36); doc.setFontSize(11);
+  doc.text(new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }), M, y); y += 28;
+  for (const para of [`Dear Hiring Team at ${job.company},`, ...(r.cover_letter || []), "Sincerely,"]) {
+    for (const ln of doc.splitTextToSize(para, W)) { doc.text(ln, M, y); y += 15.5; }
+    y += 9;
+  }
+  doc.text(p.name, M, y);
+  return doc.output("blob");
+}
 function fileBase(job, p) { return `${(p.name || "Resume").replace(/[^A-Za-z0-9]+/g, "_")}_${(job.company || "Job").replace(/[^A-Za-z0-9]+/g, "_").slice(0, 30)}`; }
 async function save(filename, blobPromise) {
   if (!cap.downloads) { toast("Downloads only work inside Claude. Open this page from your Claude chat."); return; }
@@ -1455,6 +1507,7 @@ function jobCard(j) {
       <div><div class="meter-label"><span>Patient-care hours</span><span>${clinWord(j.clinical)}</span></div><div class="bar clin"><i style="width:${j.clinical}%"></i></div></div>
       <div><div class="meter-label"><span>Fit for you</span><span>${fitWord(j)}</span></div><div class="bar fit"><i style="width:${j.fit}%"></i></div></div>
     </div>
+    ${(j.notes || []).length || j.setting ? `<div class="reasons">${esc([j.setting && j.setting !== "setting not listed" ? j.setting[0].toUpperCase() + j.setting.slice(1) : "", ...(j.notes || [])].filter(Boolean).join(" · "))}</div>` : ""}
     ${why}
     <div class="actions">
       ${resumeBtns}
@@ -1467,6 +1520,26 @@ function jobCard(j) {
       ${status}
     </div>
   </article>`;
+}
+
+function renderNext() {
+  const items = [];
+  const jobs = state.jobs.filter((j) => j.status !== "skip");
+  for (const j of jobs.filter((j) => j.status === "interview")) items.push([`Get ready for your interview at <b>${esc(j.company)}</b>.`, `<button class="btn btn-teal btn-sm" data-act="practice" data-key="${j.key}">Practice my interview</button>`]);
+  for (const j of jobs.filter((j) => j.status === "applied" && j.appliedOn && daysAgo(j.appliedOn) >= 7)) items.push([`Follow up with <b>${esc(j.company)}</b>. You applied ${daysAgo(j.appliedOn)} days ago.`, `<button class="btn btn-teal btn-sm" data-act="followup" data-key="${j.key}">Write a follow-up</button>`]);
+  for (const j of jobs.filter((j) => j.status === "hired")) {
+    const recent = state.hours.some((h) => norm(h.place) === norm(j.company) && daysAgo(h.date) <= 7);
+    if (!recent) items.push([`Log your shifts at <b>${esc(j.company)}</b> so you have a record for nursing school.`, `<button class="btn btn-teal btn-sm" data-act="loghours" data-key="${j.key}">Log hours</button>`]);
+  }
+  const todo = jobs.filter((j) => (j.status || "new") === "new" && j.resume && !(j.flags || []).some((f) => f !== "Old posting")).sort((a, b) => b.clinical + b.fit - (a.clinical + a.fit));
+  if (todo.length) {
+    const j = todo[0];
+    items.push([`Apply to <b>${esc(j.title)}</b> at ${esc(j.company)}. It's your best match right now${todo.length > 1 ? `, and ${todo.length - 1} more ${todo.length === 2 ? "is" : "are"} waiting` : ""}.`,
+      `<button class="btn btn-primary btn-sm" data-act="preview" data-key="${j.key}">See my resume</button>${j.url ? ` <a class="btn btn-soft btn-sm" href="${esc(j.url)}" target="_blank" rel="noopener">Open job posting</a>` : ""}`]);
+  }
+  if (jobs.length && !state.alerts?.on) items.push(["Want me to check for new jobs every morning?", `<button class="btn btn-soft btn-sm" data-act="alerts">Turn on job alerts</button>`]);
+  $("#nextSteps").hidden = !items.length;
+  $("#nextList").innerHTML = items.slice(0, 3).map(([t, a]) => `<div class="next"><p>${t}</p><div class="actions">${a}</div></div>`).join("");
 }
 
 function emptyJobs() {
@@ -1483,7 +1556,7 @@ function renderJobs() {
   $("#jobs").innerHTML = shown.length ? shown.map(jobCard).join("") : (list.length ? `<p class="empty">Nothing here yet.</p>` : emptyJobs());
   const unseen = list.filter((j) => !j.seen).length;
   $("#jobsTitle").textContent = unseen ? `Your jobs (${unseen} new)` : "Your jobs";
-  renderSetup();
+  renderSetup(); renderNext();
 }
 
 function renderAlerts() {
@@ -1574,7 +1647,8 @@ function openPreview(j, startTab = "r") {
     <div data-pane="c" ${startTab === "c" ? "" : "hidden"}>
       <div class="paper-wrap"><div class="paper letter">${letterText(j, r, p).split("\n\n").map((x) => `<p>${esc(x).replace(/\n/g, "<br>")}</p>`).join("")}</div></div>
       <div class="actions" style="margin-top:12px">
-        <button class="btn btn-primary btn-sm" data-dl="letter">Download Word</button>
+        <button class="btn btn-primary btn-sm" data-dl="letterpdf">Download PDF</button>
+        <button class="btn btn-soft btn-sm" data-dl="letter">Download Word</button>
         <button class="btn btn-soft btn-sm" data-copyletter>Copy text</button>
       </div>
     </div>
@@ -1606,6 +1680,7 @@ function openPreview(j, startTab = "r") {
     dlg.querySelector('[data-dl="pdf"]').addEventListener("click", () => save(fileBase(j, p) + "_Resume.pdf", buildPDF(r, p).blob));
     dlg.querySelector('[data-dl="docx"]').addEventListener("click", () => save(fileBase(j, p) + "_Resume.docx", buildDOCX(r, p)));
     dlg.querySelector('[data-dl="letter"]').addEventListener("click", () => save(fileBase(j, p) + "_Cover_Letter.docx", buildLetterDOCX(j, r, p)));
+    dlg.querySelector('[data-dl="letterpdf"]').addEventListener("click", () => save(fileBase(j, p) + "_Cover_Letter.pdf", buildLetterPDF(j, r, p)));
     dlg.querySelector("[data-copyletter]").addEventListener("click", async () => { try { await navigator.clipboard.writeText(letterText(j, r, p)); toast("Cover letter copied"); } catch { toast("Select the text and copy it."); } });
     dlg.querySelector("[data-askky]").addEventListener("click", () => { close(); openChat({ job: j }); });
   });
@@ -1669,7 +1744,7 @@ let tipIdx = Math.floor(Math.random() * KY_TIPS.length);
 
 function trick(name, ms = 900) {
   if (REDUCED) return;
-  kyEl.classList.remove("jump", "spin", "wiggle", "stretch");
+  kyEl.classList.remove("jump", "spin", "wiggle", "stretch", "wave");
   void kyEl.getBoundingClientRect();
   kyEl.classList.add(name);
   setTimeout(() => kyEl.classList.remove(name), ms);
@@ -1872,7 +1947,7 @@ function renderChat() {
     if (chat.focusFresh && !m.pending) return; // fresh topic: start from the greeting
     if (m.role === "user") items.push(`<div class="msg me">${esc(m.content).replace(/\n/g, "<br>")}</div>`);
     else if (m.role === "note") items.push(`<div class="msg note ${m.undone ? "undone" : ""}">${esc(m.content)}${m.undo && !m.undone ? ` <button class="linkbtn small" data-undo="${i}" type="button">Undo</button>` : ""}</div>`);
-    else items.push(`<div class="msg kyb ${m.error ? "err" : ""}" data-i="${i}">${m.content ? mdLite(m.content) : `<span class="typing" role="img" aria-label="Ky is writing"><i></i><i></i><i></i></span>`}${m.error ? `<p class="small">${esc(m.error)}</p>` : ""}</div>`);
+    else items.push(`<div class="msg kyb ${m.error ? "err" : ""}" data-i="${i}">${m.content ? mdLite(m.content) : `<span class="typing" role="img" aria-label="Ky is writing"><i></i><i></i><i></i></span>`}${m.error ? `<p class="small">${esc(m.error)}</p>` : ""}</div>${!m.pending && m.content && m.content.length > 140 ? `<button class="copy-msg" type="button" data-copymsg="${i}">Copy</button>` : ""}`);
   });
   $("#chatLog").innerHTML = items.join("");
   $("#chatLog").scrollTop = $("#chatLog").scrollHeight;
@@ -2026,6 +2101,11 @@ function wireV2() {
   document.addEventListener("pointermove", (e) => { look(e.clientX, e.clientY); if ($("#kyWrap").classList.contains("sleeping")) wake(); }, { passive: true });
   ["keydown", "scroll", "pointerdown"].forEach((ev) => document.addEventListener(ev, () => { if ($("#kyWrap").classList.contains("sleeping")) wake(); else { clearTimeout(idleTimer); wake(); } }, { passive: true }));
   wake(); earTwitches(); fabPeek();
+  setTimeout(() => trick("wave", 1300), 900);
+  document.addEventListener("focusin", (e) => {
+    const t = e.target; if (!t.matches?.("input, textarea, select") || t.closest("#chat")) return;
+    const r = t.getBoundingClientRect(); look(r.left + Math.min(r.width, 120) / 2, r.top + r.height / 2);
+  });
   // prefs
   $("#roles").addEventListener("click", (e) => {
     const b = e.target.closest("[data-role]"); if (!b) return;
@@ -2073,13 +2153,19 @@ function wireV2() {
   $("#chatIn").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("#chatForm").requestSubmit(); } });
   $("#chatIn").addEventListener("input", (e) => { e.target.style.height = "auto"; e.target.style.height = Math.min(140, e.target.scrollHeight) + "px"; });
   $("#chatChips").addEventListener("click", (e) => { const b = e.target.closest("[data-chip]"); if (b) sendChat(b.textContent); });
-  $("#chatLog").addEventListener("click", (e) => { const b = e.target.closest("[data-undo]"); if (b) undoNote(+b.dataset.undo); });
+  $("#chatLog").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-undo]"); if (b) return undoNote(+b.dataset.undo);
+    const c = e.target.closest("[data-copymsg]");
+    if (c) { const m = chat.msgs[+c.dataset.copymsg]; try { await navigator.clipboard.writeText(String(m.content).replace(/\*\*(.+?)\*\*/g, "$1")); toast("Copied"); } catch { toast("Select the text and copy it."); } }
+  });
 }
 
 /* ===================================================================
    Events
    =================================================================== */
-async function persistSettings() {
+let settingsChain = Promise.resolve();
+function persistSettings() { settingsChain = settingsChain.then(writeSettings, writeSettings); return settingsChain; }
+async function writeSettings() {
   const prev = (await store.settings()) || {};
   await store.saveSettings({
     ...prev, zip: state.zip, count: state.count, resumeText: state.resumeText, resumeName: state.resumeName,
@@ -2119,9 +2205,11 @@ function wire() {
     state.filter = b.dataset.f; $("#filters").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); renderJobs();
   });
 
-  $("#jobs").addEventListener("click", async (e) => {
+  const onJobClick = async (e) => {
     const b = e.target.closest("[data-act]"); const card = e.target.closest(".job");
-    const j = card && state.jobs.find((x) => x.key === card.dataset.key);
+    const key = b?.dataset.key || card?.dataset.key;
+    if (b?.dataset.act === "alerts") return openAlerts();
+    const j = key && state.jobs.find((x) => x.key === key);
     if (!j) return;
     if (!j.seen && (b || e.target.closest("a"))) store.patchJob(j.key, { seen: true });
     if (!b) return;
@@ -2135,7 +2223,9 @@ function wire() {
     else if (act === "practice") openChat({ job: j, send: `Help me practice for my interview for ${j.title} at ${j.company}. Ask me one question at a time and give me friendly feedback on each answer.` });
     else if (act === "loghours") { $("#hPlace").value = j.company; $("#hoursTitle").scrollIntoView({ behavior: "smooth", block: "start" }); setTimeout(() => $("#hHours").focus(), 400); }
     else if (act === "retry") retryTailor(j, b);
-  });
+  };
+  $("#jobs").addEventListener("click", onJobClick);
+  $("#nextList").addEventListener("click", onJobClick);
   $("#jobs").addEventListener("change", (e) => {
     const s = e.target.closest("[data-act=status]"); if (!s) return;
     const j = state.jobs.find((x) => x.key === s.dataset.key); if (j) setStatus(j, s.value);
@@ -2181,7 +2271,16 @@ async function boot() {
     if (state.resumeText) { const first = state.profile?.name?.split(" ")[0]; ky(null, `${part}${first ? ", " + first : ""}!`, "Your resume and ZIP code are saved. Tap Find more jobs whenever you're ready, check the jobs I found below, or tap Ask Ky if you have a question."); }
   }
   renderSetup(); renderAlerts();
-  store.watch("hours", (hrs) => { state.hours = hrs; renderHours(); });
+  let lastTotal = null;
+  store.watch("hours", (hrs) => {
+    state.hours = hrs; renderHours(); renderNext();
+    const t = hoursTotals().total;
+    if (lastTotal !== null && t > lastTotal) {
+      const m = [10, 25, 50, 100, 150, 200, 300, 500, 750, 1000].find((x) => lastTotal < x && t >= x);
+      if (m) { kyConfetti(); ky("happy", `${m} hours!`, `You've logged ${m} hours of healthcare work. Every one of them counts toward nursing school. I'm so proud of you!`); trick("wave", 1300); }
+    }
+    lastTotal = t;
+  });
   store.watch("jobs", (jobs) => {
     state.jobs = jobs; renderJobs(); renderHours();
     if (!$("#chat").hidden && !chat.busy) renderChat();
