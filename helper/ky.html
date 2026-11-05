@@ -217,14 +217,152 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
 .paper .cert { border: 1.5px solid var(--p-rule); border-radius: 4px; padding: 2px 8px; font-weight: 700; font-size: 11.5px; }
 .letter p { margin: 0 0 10px; }
 .toast { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-weight: 700; z-index: 60; box-shadow: var(--shadow); max-width: calc(100% - 32px); text-align: center; }
-.footer { text-align: center; color: var(--muted); font-size: .85rem; }
+.footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bottom: 64px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* fine-tune */
+.finetune { border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface-2); }
+.finetune summary { cursor: pointer; padding: 12px 14px; font-weight: 800; list-style-position: inside; }
+.ft-body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 14px; }
+.ft-label { font-weight: 700; font-size: .92rem; margin-bottom: 6px; }
+.choice { display: flex; flex-wrap: wrap; gap: 6px; }
+.choice button { border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-weight: 700; font-size: .875rem; cursor: pointer; }
+.choice button[aria-pressed="true"], .choice button[aria-checked="true"] { background: var(--teal); border-color: var(--teal); color: var(--surface); }
+
+/* hours */
+.hours-top { display: grid; grid-template-columns: auto auto 1fr; gap: 20px; align-items: end; }
+.tot .big { font-family: var(--display); font-size: 2.2rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.tot .big.teal { color: var(--teal); }
+.goal { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.goal-row { display: flex; gap: 8px; align-items: center; }
+.goal-in { width: 6.5em; padding: 6px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--surface); font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) { .hours-top { grid-template-columns: 1fr 1fr; } .goal { grid-column: 1 / -1; } }
+.hours-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; background: var(--surface-2); border-radius: 12px; padding: 14px; }
+.hours-form .wide { grid-column: span 2; }
+.hours-form .full { grid-column: 1 / -1; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field label { font-size: .82rem; font-weight: 700; color: var(--muted); }
+.field input, .field select { padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--surface); min-width: 0; width: 100%; }
+@media (max-width: 560px) { .hours-form { grid-template-columns: 1fr 1fr; } .hours-form .wide { grid-column: 1 / -1; } }
+.hlist { display: flex; flex-direction: column; }
+.hrow { display: grid; grid-template-columns: 6.5em 1fr auto auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: .95rem; }
+.hrow:last-child { border-bottom: 0; }
+.hrow .hrs { font-weight: 800; font-variant-numeric: tabular-nums; }
+.hrow .when { color: var(--muted); font-variant-numeric: tabular-nums; }
+.hrow .place { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 520px) { .hrow { grid-template-columns: 1fr auto; } .hrow .when { grid-column: 1 / -1; } }
+
+/* job card second row + ats */
+.actions + .actions { margin-top: -4px; }
+.pill.ats { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); }
+.checks { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.checks li::before { content: "✓"; color: var(--good); font-weight: 800; margin-right: 8px; }
+.checks li.no::before { content: "!"; color: var(--warn); }
+.kw { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.seg { display: inline-flex; border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); padding: 6px 14px; font-weight: 700; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+/* resume designs */
+.paper .phead { display: flex; flex-direction: column; }
+.paper.tpl-modern { --p-accent: #1F5C57; }
+.paper.tpl-modern .phead { background: #1F5C57; color: #FFFFFF; margin: -32px -34px 0; padding: 26px 34px 18px; border-radius: 4px 4px 0 0; }
+.paper.tpl-modern .phead .pc { color: #D6EAE6; }
+.paper.tpl-modern .phead .pt { color: #FBE0CC; }
+.paper.tpl-modern .ph { border-bottom: 0; border-left: 4px solid #C2602A; padding-left: 8px; }
+.paper.tpl-classic { --p-accent: #1E2624; --p-rule: #1E2624; font-family: Georgia, "Times New Roman", serif; }
+.paper.tpl-classic .phead { text-align: center; }
+.paper.tpl-classic .pt { font-style: italic; font-weight: 600; }
+.paper.tpl-classic .ph { border-bottom-width: 1px; letter-spacing: .16em; }
+
+/* Ask Ky */
+.fab { position: fixed; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 40; display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px 6px 6px; border: 0; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-family: var(--display); font-weight: 600; font-size: 1.05rem; cursor: pointer; box-shadow: 0 8px 24px rgb(0 0 0 / .2); }
+.fab .face { width: 40px; height: 40px; border-radius: 50%; background: var(--cream); display: grid; place-items: center; }
+.face svg { width: 100%; height: 100%; }
+.chat { position: fixed; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 45; width: min(410px, calc(100vw - 32px)); height: min(680px, calc(100vh - 32px)); background: var(--surface); border-radius: 18px; box-shadow: 0 20px 60px rgb(0 0 0 / .28); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--line); }
+@media (max-width: 560px) {
+  .chat { inset: 0; width: 100%; height: 100%; border-radius: 0; border: 0; padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+}
+.chat-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.chat-head .face { width: 42px; height: 42px; border-radius: 50%; background: var(--cream); flex: none; }
+.chat-title { font-family: var(--display); font-weight: 600; font-size: 1.15rem; }
+.chat-head .grow { flex: 1; min-width: 0; }
+.chat-focus { display: flex; gap: 8px; align-items: center; padding: 8px 14px; background: var(--teal-soft); font-size: .9rem; }
+.chat-focus span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.chat-log { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.msg { max-width: 88%; padding: 10px 13px; border-radius: 16px; font-size: .97rem; line-height: 1.45; overflow-wrap: anywhere; }
+.msg p { margin: 0 0 6px; } .msg p:last-child { margin-bottom: 0; }
+.msg ul, .msg ol { margin: 4px 0 6px; padding-left: 20px; }
+.msg.me { align-self: flex-end; background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 4px; }
+.msg.kyb { align-self: flex-start; background: var(--surface-2); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.msg.kyb.err { background: var(--bad-soft); }
+.msg.note { align-self: center; background: var(--good-soft); color: var(--good); font-size: .85rem; font-weight: 700; padding: 6px 12px; border-radius: 999px; display: flex; gap: 8px; align-items: center; }
+.msg.note.undone { background: var(--surface-2); color: var(--muted); text-decoration: line-through; }
+.typing { display: inline-flex; gap: 4px; }
+.typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: tdot 1.2s infinite; }
+.typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+@keyframes tdot { 0%, 60%, 100% { opacity: .3; } 30% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .typing i { animation: none; } }
+.chat-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; }
+.chat-chips button { border: 1.5px solid var(--teal); color: var(--teal); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-weight: 700; font-size: .85rem; cursor: pointer; text-align: left; }
+.chat-form { display: flex; gap: 8px; padding: 10px 14px 6px; border-top: 1px solid var(--line); align-items: flex-end; }
+.chat-form textarea { min-height: 44px; max-height: 140px; resize: none; flex: 1; border-radius: 12px; padding: 10px 12px; }
+.chat-note { font-size: .75rem; color: var(--muted); padding: 0 14px 10px; text-align: center; }
+
+/* Ky's moves */
+.kywrap { position: relative; width: 150px; height: 150px; }
+.ky { cursor: pointer; overflow: visible; transform-origin: 50% 75%; -webkit-tap-highlight-color: transparent; border-radius: 50%; }
+.ky:focus { outline: none; }
+.ky:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.ky .ear-l { transform-origin: 62px 56px; }
+.ky .ear-r { transform-origin: 122px 54px; }
+.ky.twitch .ear-l { animation: earL .5s ease-in-out; }
+.ky.twitch .ear-r { animation: earR .5s ease-in-out .08s; }
+@keyframes earL { 40% { transform: rotate(-16deg); } }
+@keyframes earR { 40% { transform: rotate(16deg); } }
+.ky.jump { animation: kyJump .7s cubic-bezier(.3, .7, .4, 1); }
+.ky.spin { animation: kySpin .9s ease-in-out; }
+.ky.wiggle { animation: kyWiggle .8s ease-in-out; }
+.ky.stretch { animation: kyStretch .8s ease-in-out; }
+@keyframes kyJump { 0% { transform: translateY(0) scale(1, 1); } 15% { transform: translateY(0) scale(1.08, .9); } 45% { transform: translateY(-26px) scale(.95, 1.06); } 75% { transform: translateY(0) scale(1.06, .94); } 100% { transform: translateY(0) scale(1); } }
+@keyframes kySpin { 0% { transform: rotate(0); } 30% { transform: translateY(-14px) rotate(180deg); } 70% { transform: translateY(-6px) rotate(340deg); } 100% { transform: rotate(360deg); } }
+@keyframes kyWiggle { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-9deg); } 40% { transform: rotate(8deg); } 60% { transform: rotate(-6deg); } 80% { transform: rotate(4deg); } }
+@keyframes kyStretch { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.05, 1.1); } }
+.ky.sleep .eyes { animation: none; transform: scaleY(.12); }
+.ky.sleep .body-g { animation-duration: 5s; }
+.ky.sleep .tail { animation-duration: 7s; }
+.zz { position: absolute; top: 6px; right: 6px; width: 40px; height: 40px; display: none; font-family: var(--display); color: var(--teal); font-weight: 600; pointer-events: none; }
+.kywrap.sleeping .zz { display: block; }
+.zz i { position: absolute; left: 0; bottom: 0; font-style: normal; opacity: 0; animation: zz 3s infinite; }
+.zz i:nth-child(1) { font-size: .9rem; }
+.zz i:nth-child(2) { font-size: 1.1rem; animation-delay: 1s; }
+.zz i:nth-child(3) { font-size: 1.35rem; animation-delay: 2s; }
+@keyframes zz { 0% { opacity: 0; transform: translate(0, 10px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(18px, -28px); } }
+.heart { position: absolute; top: 30px; color: var(--blush); font-size: 1.5rem; pointer-events: none; animation: heartUp 1.2s ease-out forwards; text-shadow: 0 1px 0 var(--surface); }
+@keyframes heartUp { from { opacity: 1; transform: translateY(0) scale(.6); } to { opacity: 0; transform: translateY(-54px) scale(1.25); } }
+.acorn-rain { position: fixed; inset: 0; pointer-events: none; z-index: 70; overflow: hidden; }
+.acorn-rain span { position: absolute; top: -40px; display: block; animation: acornFall 2s ease-in forwards; }
+.acorn-rain svg { width: 100%; height: 100%; }
+@keyframes acornFall { to { transform: translateY(112vh) rotate(var(--r, 360deg)); } }
+.runner-track { position: relative; height: 36px; overflow: hidden; margin-bottom: 6px; }
+.runner { position: absolute; top: 2px; width: 32px; height: 32px; animation: run 3.2s linear infinite; }
+.runner .face { display: block; width: 32px; height: 32px; border-radius: 50%; background: var(--cream); animation: hopSmall .4s ease-in-out infinite; }
+@keyframes run { from { left: -40px; } to { left: calc(100% + 8px); } }
+@keyframes hopSmall { 50% { transform: translateY(-5px); } }
+.fab.peek .face { animation: peek 1.1s ease-in-out; }
+@keyframes peek { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-14deg); } 50% { transform: rotate(12deg); } 75% { transform: rotate(-6deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .ky.jump, .ky.spin, .ky.wiggle, .ky.stretch, .runner, .runner .face, .fab.peek .face, .zz i, .heart { animation: none !important; }
+  .runner { left: 8px; }
+  .zz i { opacity: 1; position: static; }
+}
 </style>
 
 <div class="wrap">
 
   <!-- Ky -->
   <header class="hero">
-    <svg class="ky" id="ky" viewBox="0 0 200 200" role="img" aria-label="Ky the squirrel">
+    <div class="kywrap" id="kyWrap"><svg class="ky" id="ky" viewBox="0 0 200 200" role="button" tabindex="0" aria-label="Ky the squirrel. Tap to pet Ky">
       <ellipse cx="98" cy="190" rx="56" ry="7" fill="var(--ground)"/>
       <g class="tail">
         <path d="M112 172 C150 178 192 152 190 108 C188 70 166 40 136 44 C110 48 104 74 120 88 C134 100 156 92 158 110 C160 130 138 144 112 150 Z" fill="var(--fur)"/>
@@ -237,24 +375,24 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
         <ellipse cx="72" cy="185" rx="13" ry="6.5" fill="var(--pad)"/>
         <ellipse cx="112" cy="185" rx="13" ry="6.5" fill="var(--pad)"/>
         <!-- ears -->
-        <path d="M50 58 C44 30 58 18 70 30 C76 38 76 48 72 56 Z" fill="var(--fur)"/>
-        <path d="M56 52 C53 36 60 29 66 35 C70 40 70 46 67 51 Z" fill="var(--blush)"/>
-        <path d="M134 56 C140 28 126 16 114 28 C108 36 108 46 112 54 Z" fill="var(--fur)"/>
-        <path d="M128 50 C131 34 124 27 118 33 C114 38 114 44 117 49 Z" fill="var(--blush)"/>
+        <g class="ear-l"><path d="M50 58 C44 30 58 18 70 30 C76 38 76 48 72 56 Z" fill="var(--fur)"/>
+        <path d="M56 52 C53 36 60 29 66 35 C70 40 70 46 67 51 Z" fill="var(--blush)"/></g>
+        <g class="ear-r"><path d="M134 56 C140 28 126 16 114 28 C108 36 108 46 112 54 Z" fill="var(--fur)"/>
+        <path d="M128 50 C131 34 124 27 118 33 C114 38 114 44 117 49 Z" fill="var(--blush)"/></g>
         <!-- head -->
         <ellipse cx="92" cy="84" rx="48" ry="42" fill="var(--fur)"/>
         <path d="M84 44 C86 34 96 32 100 38 C94 36 90 40 92 46 Z" fill="var(--fur-deep)"/>
         <ellipse cx="92" cy="104" rx="24" ry="15" fill="var(--cream)"/>
         <ellipse cx="62" cy="102" rx="8" ry="5" fill="var(--blush)" opacity=".85"/>
         <ellipse cx="122" cy="102" rx="8" ry="5" fill="var(--blush)" opacity=".85"/>
-        <g class="eyes">
+        <g class="eyes"><g id="kyPupils">
           <ellipse cx="74" cy="88" rx="9" ry="11" fill="var(--eye)"/>
           <circle cx="77" cy="84" r="3.6" fill="#FFFFFF"/>
           <circle cx="71.5" cy="93" r="1.6" fill="#FFFFFF"/>
           <ellipse cx="110" cy="88" rx="9" ry="11" fill="var(--eye)"/>
           <circle cx="113" cy="84" r="3.6" fill="#FFFFFF"/>
           <circle cx="107.5" cy="93" r="1.6" fill="#FFFFFF"/>
-        </g>
+        </g></g>
         <path d="M88 99 Q92 96 96 99 Q92 103 88 99 Z" fill="var(--eye)"/>
         <path d="M86 105 Q89 109 92 105 Q95 109 98 105" stroke="var(--eye)" stroke-width="2" fill="none" stroke-linecap="round"/>
         <!-- paws -->
@@ -268,7 +406,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
       </g>
       <g class="sparkle" style="transform-origin:160px 30px"><path d="M160 18 L163 27 L172 30 L163 33 L160 42 L157 33 L148 30 L157 27 Z" fill="var(--accent)"/></g>
       <g class="sparkle" style="transform-origin:34px 40px"><path d="M34 32 L36 38 L42 40 L36 42 L34 48 L32 42 L26 40 L32 38 Z" fill="var(--teal)"/></g>
-    </svg>
+    </svg><span class="zz" aria-hidden="true"><i>z</i><i>z</i><i>Z</i></span></div>
     <div class="bubble" aria-live="polite">
       <p class="hi" id="kyHi">Hi, I'm Ky!</p>
       <p id="kySays">I find entry-level healthcare jobs near you that give real patient-care hours for nursing school. Then I write a resume for each one. Let's start with the three steps below.</p>
@@ -336,6 +474,15 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
       </div>
     </div>
 
+    <details class="finetune" id="finetune">
+      <summary>Fine-tune my search <span class="muted small">(optional)</span></summary>
+      <div class="ft-body">
+        <div><div class="ft-label" id="rolesLabel">Job types to look for</div><div class="choice" id="roles" role="group" aria-labelledby="rolesLabel"></div></div>
+        <div><div class="ft-label" id="schedLabel">Schedule</div><div class="choice" id="sched" role="radiogroup" aria-labelledby="schedLabel"></div></div>
+        <div><div class="ft-label" id="shiftLabel">Shifts I can work</div><div class="choice" id="shifts" role="group" aria-labelledby="shiftLabel"></div><p class="small muted" style="margin-top:6px">Leave these empty if you're flexible. I'll rank jobs that fit your schedule higher.</p></div>
+      </div>
+    </details>
+
     <div class="start-row">
       <button class="btn btn-primary btn-big" id="start" type="button">Start the search</button>
       <button class="btn btn-soft" id="stop" type="button" hidden>Stop</button>
@@ -343,6 +490,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
     </div>
 
     <div id="progressWrap" hidden>
+      <div class="runner-track" aria-hidden="true"><div class="runner" id="runner" hidden><span class="face" data-kyface></span></div></div>
       <div class="progress" id="progress" aria-live="polite"></div>
     </div>
     <div id="errorBox" class="notice bad" hidden></div>
@@ -361,6 +509,35 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
     <div class="jobs" id="jobs"></div>
   </section>
 
+  <!-- Hours -->
+  <section class="panel" aria-labelledby="hoursTitle">
+    <div class="panel-head">
+      <h2 id="hoursTitle">Your patient-care hours</h2>
+      <button class="btn btn-soft btn-sm" id="hoursCsv" type="button">Download my hours</button>
+    </div>
+    <div class="hours-top">
+      <div class="tot"><div class="big" id="hTotal">0</div><div class="muted small">total hours</div></div>
+      <div class="tot"><div class="big teal" id="hDirect">0</div><div class="muted small">hands-on patient care</div></div>
+      <div class="goal">
+        <div class="goal-row"><label for="hGoal" class="small muted">My goal (optional)</label><input id="hGoal" class="goal-in" inputmode="numeric" placeholder="hours"></div>
+        <div class="bar clin"><i id="hBar" style="width:0%"></i></div>
+        <div class="small muted" id="hGoalText">Set a goal if a program you like asks for a number of hours.</div>
+      </div>
+    </div>
+    <form class="hours-form" id="hoursForm">
+      <div class="field"><label for="hDate">Date</label><input type="date" id="hDate" required></div>
+      <div class="field wide"><label for="hPlace">Where</label><input id="hPlace" list="hPlaces" placeholder="Job or volunteer place" required><datalist id="hPlaces"></datalist></div>
+      <div class="field"><label for="hHours">Hours</label><input id="hHours" type="number" min="0.25" max="24" step="0.25" inputmode="decimal" required></div>
+      <div class="field wide"><label for="hKind">Kind</label><select id="hKind"><option value="direct">Hands-on patient care</option><option value="other">Other healthcare work</option><option value="volunteer">Volunteer</option></select></div>
+      <div class="field"><label for="hSup">Supervisor</label><input id="hSup" placeholder="Name"></div>
+      <div class="field wide"><label for="hContact">Supervisor contact</label><input id="hContact" placeholder="Work phone or email"></div>
+      <div class="field full"><label for="hNotes">What you did (optional)</label><input id="hNotes" placeholder="Vitals, helped residents with meals…"></div>
+      <div class="full"><button class="btn btn-primary btn-sm" type="submit">Log hours</button></div>
+    </form>
+    <div class="hlist" id="hoursList"></div>
+    <p class="small muted">Tip: before you leave any job, ask your supervisor to confirm your hours and write down how to reach them. Schools and employers may ask.</p>
+  </section>
+
   <!-- Alerts -->
   <section class="panel" aria-labelledby="alertsTitle">
     <div class="alerts">
@@ -374,6 +551,26 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
 
   <p class="footer">Ky only uses facts from your resume and never applies, signs in, or sends anything without you.</p>
 </div>
+
+<button class="fab" id="fab" type="button" aria-label="Ask Ky a question"><span class="face" data-kyface></span><span>Ask Ky</span></button>
+<aside class="chat" id="chat" hidden aria-label="Ask Ky chat">
+  <div class="chat-head">
+    <span class="face" data-kyface></span>
+    <div class="grow"><div class="chat-title">Ask Ky</div><div class="small muted">Jobs, applications and patient-care hours</div></div>
+    <button class="linkbtn small" id="chatReset" type="button">Start over</button>
+    <button class="x" id="chatClose" type="button" aria-label="Close chat">×</button>
+  </div>
+  <div class="chat-focus" id="chatFocus" hidden><span id="chatFocusText"></span><button class="linkbtn small" id="chatFocusClear" type="button">Clear</button></div>
+  <div class="chat-log" id="chatLog" aria-live="polite"></div>
+  <div class="chat-chips" id="chatChips"></div>
+  <form class="chat-form" id="chatForm">
+    <label for="chatIn" class="sr-only">Your question</label>
+    <textarea id="chatIn" rows="1" placeholder="Ask me about jobs, applications or hours…"></textarea>
+    <button class="btn btn-primary btn-sm" id="chatSend" type="submit">Send</button>
+    <button class="btn btn-soft btn-sm" id="chatStop" type="button" hidden>Stop</button>
+  </form>
+  <p class="chat-note">Ky can make mistakes. Double-check important details with the employer or school.</p>
+</aside>
 
 <div id="modalRoot"></div>
 <div id="toastRoot"></div>
@@ -444,28 +641,39 @@ const store = {
     lsSet("ky.settings", s);
     if (cap.db) { try { await cap.db.doc("settings/main").set(s); } catch (e) { console.warn("settings save", e); } }
   },
-  watchJobs(cb) {
+  _ls: { jobs: "ky.jobs", hours: "ky.hours" },
+  _idk: { jobs: "key", hours: "id" },
+  _cb: {},
+  // Live list of a collection; falls back to this browser's copy without the database.
+  watch(coll, cb) {
+    this._cb[coll] = cb;
+    const key = this._ls[coll], idk = this._idk[coll];
     if (cap.db) {
       let got = false;
-      const timer = setTimeout(() => { if (!got) cb(lsGet("ky.jobs") || []); }, 10000);
-      return cap.db.collection("jobs").onSnapshot(
-        (snap) => { got = true; clearTimeout(timer); cb(snap.docs.map((d) => ({ ...d.data(), key: d.id }))); },
-        () => { clearTimeout(timer); cb(lsGet("ky.jobs") || []); }
+      const timer = setTimeout(() => { if (!got) cb(lsGet(key) || []); }, 10000);
+      return cap.db.collection(coll).onSnapshot(
+        (snap) => { got = true; clearTimeout(timer); cb(snap.docs.map((d) => ({ ...d.data(), [idk]: d.id }))); },
+        () => { clearTimeout(timer); cb(lsGet(key) || []); }
       );
     }
-    cb(lsGet("ky.jobs") || []);
+    cb(lsGet(key) || []);
     return () => {};
   },
-  async saveJob(job) {
-    const all = (lsGet("ky.jobs") || []).filter((j) => j.key !== job.key); all.push(job); lsSet("ky.jobs", all);
-    if (cap.db) { try { await cap.db.doc("jobs/" + job.key).set(job); } catch (e) { console.warn("job save", e); } }
-    else { state.jobs = all; renderJobs(); }
+  _local(coll, fn) { const k = this._ls[coll]; const all = fn(lsGet(k) || []); lsSet(k, all); this._cb[coll]?.(all); },
+  async put(coll, id, doc) {
+    if (cap.db) { try { await cap.db.doc(`${coll}/${id}`).set(doc); return; } catch (e) { console.warn("save", coll, e); } }
+    const idk = this._idk[coll]; this._local(coll, (all) => [...all.filter((x) => x[idk] !== id), { ...doc, [idk]: id }]);
   },
-  async patchJob(key, patch) {
-    const all = (lsGet("ky.jobs") || []).map((j) => (j.key === key ? { ...j, ...patch } : j)); lsSet("ky.jobs", all);
-    if (cap.db) { try { await cap.db.doc("jobs/" + key).update(patch); } catch (e) { console.warn("job patch", e); } }
-    else { state.jobs = all; renderJobs(); }
+  async patch(coll, id, patch) {
+    if (cap.db) { try { await cap.db.doc(`${coll}/${id}`).update(patch); return; } catch (e) { console.warn("patch", coll, e); } }
+    const idk = this._idk[coll]; this._local(coll, (all) => all.map((x) => (x[idk] === id ? { ...x, ...patch } : x)));
   },
+  async remove(coll, id) {
+    if (cap.db) { try { await cap.db.doc(`${coll}/${id}`).delete(); return; } catch (e) { console.warn("delete", coll, e); } }
+    const idk = this._idk[coll]; this._local(coll, (all) => all.filter((x) => x[idk] !== id));
+  },
+  saveJob(job) { return this.put("jobs", job.key, job); },
+  patchJob(key, patch) { return this.patch("jobs", key, patch); },
 };
 
 /* ===================================================================
@@ -474,7 +682,9 @@ const store = {
 const state = {
   resumeText: "", resumeName: "", resumeHash: "", profile: null, profileHash: "",
   zip: "", count: 5, jobs: [], filter: "all", running: false, abort: null, alerts: null,
+  prefs: { roles: null, schedule: "any", shifts: [] }, template: "clean", hours: [], hoursGoal: null,
 };
+const STATUS_LABEL = { new: "Not applied yet", applied: "I applied", interview: "Got an interview", hired: "I got the job!", skip: "Not for me" };
 
 /* ===================================================================
    Step 1: read the resume
@@ -678,6 +888,14 @@ function score(j, p) {
     else { fit -= 5; notes.push(`${CERT_NAMES[code]} is a plus`); }
   }
   const pay = hourly(j); if (pay) fit += pay >= 18 ? 5 : -5;
+  const canWork = state.prefs?.shifts || [];
+  if (canWork.length) {
+    const jobShifts = Object.keys(SHIFT_WORDS).filter((k) => any(text, SHIFT_WORDS[k]));
+    if (jobShifts.length) {
+      if (jobShifts.some((s) => canWork.includes(s))) { fit += 10; notes.push("Shift fits your schedule"); }
+      else { fit -= 15; notes.push("Shift may not fit your schedule"); }
+    }
+  }
   const age = daysAgo(j.posted); const flags = [];
   if (age != null) { if (age <= 7) { fit += 10; notes.push("Posted this week"); } else if (age <= 14) fit += 5; else if (age > 45) { fit -= 15; flags.push("Old posting"); } else if (age > 30) fit -= 10; }
   if (/(\d+)\+?\s*(years?|yrs?)\s+(of\s+)?(\w+\s+){0,3}experience\s+(is\s+)?required|minimum (of )?(\d+) (years?|months?)/.test(text) && !(p?.experience || []).some((e) => e.patient_care)) { fit -= 10; notes.push("Asks for some experience"); }
@@ -699,7 +917,26 @@ const fitWord = (s) => (s.missing.length ? "Missing a requirement" : s.fit >= 75
 /* ===================================================================
    Indeed (her own connector)
    =================================================================== */
-const SEARCH_TERMS = ["patient care technician", "certified nursing assistant", "caregiver", "medical assistant", "emergency room technician", "phlebotomist", "behavioral health technician", "nursing assistant hospital"];
+// [id, label, Indeed searches, on by default]
+const ROLE_OPTIONS = [
+  ["cna", "CNA / Nursing assistant", ["certified nursing assistant", "nursing assistant hospital"], true],
+  ["pct", "Patient care tech", ["patient care technician"], true],
+  ["er", "ER tech", ["emergency room technician"], true],
+  ["care", "Caregiver / Home health", ["caregiver"], true],
+  ["ma", "Medical assistant", ["medical assistant"], true],
+  ["phleb", "Phlebotomy", ["phlebotomist"], true],
+  ["bh", "Behavioral health", ["behavioral health technician"], true],
+  ["ekg", "EKG / Monitor tech", ["EKG technician"], false],
+  ["sitter", "Sitter / Transport", ["patient sitter", "patient transporter"], false],
+];
+const DEFAULT_ROLES = ROLE_OPTIONS.filter((r) => r[3]).map((r) => r[0]);
+const SCHEDULES = [["any", "Any"], ["parttime", "Part-time"], ["fulltime", "Full-time"]];
+const SHIFT_OPTIONS = [["days", "Days"], ["evenings", "Evenings"], ["nights", "Nights"], ["weekends", "Weekends"]];
+const SHIFT_WORDS = { days: ["day shift", "days", "7a-7p", "7am-7pm", "7a-3p"], evenings: ["evening", "pm shift", "3p-11p", "swing"], nights: ["night", "noc", "7p-7a", "7pm-7am", "11p-7a"], weekends: ["weekend"] };
+function searchTerms() {
+  const on = state.prefs.roles?.length ? state.prefs.roles : DEFAULT_ROLES;
+  return ROLE_OPTIONS.filter((r) => on.includes(r[0])).flatMap((r) => r[2]);
+}
 const FIELD = /\*\*(Job Title|Job Id|Company|Location|Posted on|Job Type|Compensation|View Job URL):\*\*\s*(.+)/;
 
 function payParse(s) {
@@ -869,10 +1106,14 @@ async function startSearch() {
 
     const known = new Set(state.jobs.map((j) => j.key));
     const found = new Map();
-    for (const [i, term] of SEARCH_TERMS.entries()) {
+    const terms = searchTerms();
+    kyScurry();
+    for (const [i, term] of terms.entries()) {
       if (signal.aborted) throw { code: "cancelled" };
-      progress("search", `Searching Indeed (${i + 1} of ${SEARCH_TERMS.length}): ${term} jobs near ${state.zip}`);
-      const md = await indeed("search_jobs", { search: term, location: state.zip, country_code: "US" }, signal);
+      progress("search", `Searching Indeed (${i + 1} of ${terms.length}): ${term} jobs near ${state.zip}`);
+      const input = { search: term, location: state.zip, country_code: "US" };
+      if (state.prefs.schedule !== "any") input.job_type = state.prefs.schedule;
+      const md = await indeed("search_jobs", input, signal);
       for (const j of parseSearch(md)) {
         const key = "j" + hash(norm(j.company) + "|" + norm(j.title) + "|" + norm(j.location));
         if (!found.has(key) && !known.has(key)) found.set(key, { ...j, key });
@@ -921,6 +1162,7 @@ async function startSearch() {
       if (tailored) made++;
     }
     progress("tailor", `Wrote ${made} tailored resume${made === 1 ? "" : "s"}`, "done");
+    kyConfetti();
     ky("happy", "Ta-da!", `I found ${pool.length} job${pool.length === 1 ? "" : "s"} near you and wrote a resume for ${made === pool.length ? "each one" : made + " of them"}. They're below. Download a resume, open the job, and apply when you're ready!`);
     setTimeout(() => $("#jobsTitle").scrollIntoView({ behavior: "smooth", block: "start" }), 400);
   } catch (e) {
@@ -931,7 +1173,7 @@ async function startSearch() {
     else if (e?.code === "sampling_disabled" || e?.code === "session_expired") { showError("Claude isn't available right now. Sign in to Claude again, then reopen this page."); }
     else { console.error(e); showError(e?.message && !String(e.message).startsWith("{") ? e.message : "Something went wrong while searching. Press Start to try again."); ky(null, "Oops", "Something went wrong. Let's try that again."); }
   } finally {
-    state.running = false; state.abort = null; renderSetup();
+    state.running = false; state.abort = null; $("#runner").hidden = true; renderSetup();
   }
 }
 
@@ -947,69 +1189,187 @@ function resumeSections(r, p) {
   return { contact, certs };
 }
 
-function buildPDF(r, p) {
+// ---- Resume designs (all one column, real text, standard headings) ----
+const TPL = {
+  clean:   { label: "Clean",   font: "helvetica", accent: [31, 92, 87], header: "left",   band: false, rule: [207, 224, 220], bar: null,          docxFont: "Calibri",         docxAccent: "1F5C57" },
+  modern:  { label: "Modern",  font: "helvetica", accent: [31, 92, 87], header: "band",   band: true,  rule: null,            bar: [194, 96, 42], docxFont: "Arial",           docxAccent: "1F5C57" },
+  classic: { label: "Classic", font: "times",     accent: [30, 38, 36], header: "center", band: false, rule: [30, 38, 36],    bar: null,          docxFont: "Times New Roman", docxAccent: "1E2624" },
+};
+
+function buildPDF(r, p, tplName = state.template) {
+  const T = TPL[tplName] || TPL.clean;
   const { jsPDF } = window.jspdf;
   const W = 612, H = 792, M = 46, CW = W - M * 2;
-  const ACC = [31, 92, 87], INK = [30, 38, 36], MUT = [91, 103, 100];
+  const ACC = T.accent, INK = [30, 38, 36], MUT = [91, 103, 100], F = T.font;
+  const scales = [1, 0.95, 0.9, 0.86, 0.82, 0.78];
   let best = null;
-  for (const s of [1, 0.95, 0.9, 0.86, 0.82, 0.78]) {
+  for (const s of scales) {
+    const last = s === scales[scales.length - 1];
     const doc = new jsPDF({ unit: "pt", format: "letter" });
-    doc.setProperties({ title: `${p.name} — Resume`, author: p.name });
+    doc.setProperties({ title: `${p.name} Resume`, author: p.name, subject: r.target_title || "Resume" });
     let y = M;
-    const line = (txt, { size = 10, style = "normal", color = INK, x = M, w = CW, gap = 1.32, cs = 0 } = {}) => {
-      doc.setFont("helvetica", style); doc.setFontSize(size * s); doc.setTextColor(...color);
-      const parts = doc.splitTextToSize(String(txt), w);
-      for (const ln of parts) { y += size * s * gap; doc.text(ln, x, y, cs ? { charSpace: cs } : undefined); }
+    const room = (h) => { if (last && y + h > H - M) { doc.addPage(); y = M; } };
+    const line = (txt, { size = 10, style = "normal", color = INK, x = M, w = CW, gap = 1.32, cs = 0, align = "left" } = {}) => {
+      doc.setFont(F, style); doc.setFontSize(size * s); doc.setTextColor(...color);
+      for (const ln of doc.splitTextToSize(String(txt), w)) {
+        room(size * s * gap);
+        y += size * s * gap;
+        const opts = {}; if (cs) opts.charSpace = cs; if (align === "center") opts.align = "center";
+        doc.text(ln, align === "center" ? W / 2 : x, y, opts);
+      }
     };
     const sec = (t) => {
-      y += 12 * s; line(t.toUpperCase(), { size: 9.5, style: "bold", color: ACC, cs: 0.8 });
-      y += 4 * s; doc.setDrawColor(207, 224, 220); doc.setLineWidth(1); doc.line(M, y, W - M, y); y += 2 * s;
+      y += 12 * s; room(30 * s);
+      if (T.bar) {
+        doc.setFillColor(...T.bar); doc.rect(M, y + 3 * s, 3, 10 * s, "F");
+        line(t.toUpperCase(), { size: 9.5, style: "bold", color: ACC, cs: 0.8, x: M + 9 }); y += 5 * s;
+      } else {
+        line(t.toUpperCase(), { size: 9.5, style: "bold", color: ACC, cs: 0.8 });
+        y += 4 * s; doc.setDrawColor(...T.rule); doc.setLineWidth(F === "times" ? 0.6 : 1); doc.line(M, y, W - M, y); y += 2 * s;
+      }
     };
-    const bullets = (arr) => { for (const b of arr || []) { const y0 = y; line(b, { size: 10, x: M + 12, w: CW - 12 }); doc.setFont("helvetica", "normal"); doc.setFontSize(10 * s); doc.text("•", M + 2, y0 + 10 * s * 1.32); } };
+    const bullets = (arr) => {
+      for (const b of arr || []) {
+        const y0 = y; const pg = doc.getNumberOfPages();
+        line(b, { size: 10, x: M + 12, w: CW - 12 });
+        if (doc.getNumberOfPages() === pg) { doc.setFont(F, "normal"); doc.setFontSize(10 * s); doc.setTextColor(...INK); doc.text("•", M + 2, y0 + 10 * s * 1.32); }
+      }
+    };
     const role = (left, right, sub) => {
-      y += 4 * s; doc.setFont("helvetica", "bold"); doc.setFontSize(10.5 * s); doc.setTextColor(...INK);
+      y += 4 * s; room(28 * s);
+      doc.setFont(F, "bold"); doc.setFontSize(10.5 * s); doc.setTextColor(...INK);
       y += 10.5 * s * 1.32; doc.text(doc.splitTextToSize(left, CW - 130)[0], M, y);
-      if (right) { doc.setFont("helvetica", "normal"); doc.setTextColor(...MUT); doc.setFontSize(9.5 * s); doc.text(right, W - M, y, { align: "right" }); }
+      if (right) { doc.setFont(F, "normal"); doc.setTextColor(...MUT); doc.setFontSize(9.5 * s); doc.text(right, W - M, y, { align: "right" }); }
       if (sub) line(sub, { size: 9.5, style: "italic", color: MUT });
     };
     const { contact, certs } = resumeSections(r, p);
-    line(p.name, { size: 21, style: "bold", gap: 1 });
-    if (contact) line(contact, { size: 9.5, color: MUT, gap: 1.6 });
-    if (r.target_title) line(r.target_title, { size: 11, style: "bold", color: ACC, gap: 1.6 });
+    if (T.band) {
+      const bandH = (r.target_title ? 98 : 80) * s;
+      doc.setFillColor(...ACC); doc.rect(0, 0, W, bandH, "F");
+      y = M - 14 * s;
+      line(p.name, { size: 22, style: "bold", color: [255, 255, 255], gap: 1 });
+      if (contact) line(contact, { size: 9.5, color: [214, 234, 230], gap: 1.6 });
+      if (r.target_title) line(r.target_title, { size: 11, style: "bold", color: [251, 224, 204], gap: 1.6 });
+      y = bandH + 4 * s;
+    } else {
+      const align = T.header === "center" ? "center" : "left";
+      line(p.name, { size: 21, style: "bold", gap: 1, align });
+      if (contact) line(contact, { size: 9.5, color: MUT, gap: 1.6, align });
+      if (r.target_title) line(r.target_title, { size: 11, style: F === "times" ? "italic" : "bold", color: ACC, gap: 1.6, align });
+    }
     if (r.summary) { sec("Summary"); line(r.summary); }
     if (certs.length) { sec("Certifications"); bullets(certs); }
     if ((r.experience || []).length) { sec("Experience"); for (const e of r.experience) { role(`${e.title}, ${e.employer}`, range(e.start, e.end), e.location); bullets(e.bullets); } }
-    if ((r.education || []).length) { sec("Education"); for (const e of r.education) { role(e.school, e.end ? (/present|progress/i.test(e.status || "") ? "Expected " : "") + fmtDate(e.end) : "", [e.program, e.status, e.gpa ? "GPA " + e.gpa : ""].filter(Boolean).join("  ·  ")); if (e.details) line(e.details, { size: 9.5 }); } }
+    if ((r.education || []).length) {
+      sec("Education");
+      for (const e of r.education) {
+        role(e.school, e.end ? (/present|progress/i.test(e.status || "") ? "Expected " : "") + fmtDate(e.end) : "", [e.program, e.status, e.gpa ? "GPA " + e.gpa : ""].filter(Boolean).join("  ·  "));
+        if (e.details) line(e.details, { size: 9.5 });
+      }
+    }
     const sk = r.skills || {}; const skl = [["Clinical", sk.clinical], ["Technical", sk.technical], ["Languages", sk.languages]].filter(([, v]) => v && v.length);
     if (skl.length) { sec("Skills"); for (const [k, v] of skl) line(`${k}: ${v.join(", ")}`); }
     if ((r.volunteer || []).length) { sec("Volunteer"); for (const v of r.volunteer) { role(`${v.role}, ${v.org}`, range(v.start, v.end), v.hours ? `${v.hours} hours` : ""); bullets(v.bullets); } }
     best = doc;
-    if (y <= H - M) break;
+    if (y <= H - M || last) break;
   }
-  return best.output("blob");
+  return { blob: best.output("blob"), pages: best.getNumberOfPages() };
 }
 
-function buildDOCX(r, p) {
-  const D = window.docx; const { Document, Paragraph, TextRun, TabStopType, BorderStyle, Packer } = D;
-  const ACC = "1F5C57", MUT = "5B6764", F = "Calibri";
+function buildDOCX(r, p, tplName = state.template) {
+  const T = TPL[tplName] || TPL.clean;
+  const D = window.docx; const { Document, Paragraph, TextRun, TabStopType, BorderStyle, AlignmentType, Packer } = D;
+  const ACC = T.docxAccent, MUT = "5B6764", F = T.docxFont, center = T.header === "center";
   const run = (t, o = {}) => new TextRun({ text: String(t), font: F, size: o.size ?? 21, bold: o.bold, italics: o.italics, color: o.color });
-  const para = (children, o = {}) => new Paragraph({ children, spacing: { after: o.after ?? 40, before: o.before ?? 0 }, ...o.extra });
-  const sec = (t) => new Paragraph({ children: [new TextRun({ text: t.toUpperCase(), font: F, size: 19, bold: true, color: ACC, characterSpacing: 20 })], spacing: { before: 200, after: 60 }, border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: "CFE0DC", space: 2 } } });
+  const para = (children, o = {}) => new Paragraph({ children, spacing: { after: o.after ?? 40, before: o.before ?? 0 }, alignment: o.center ? AlignmentType.CENTER : undefined });
+  const sec = (t) => new Paragraph({
+    children: [new TextRun({ text: t.toUpperCase(), font: F, size: 19, bold: true, color: ACC, characterSpacing: 20 })],
+    spacing: { before: 200, after: 60 },
+    border: T.bar ? { left: { style: BorderStyle.SINGLE, size: 24, color: "C2602A", space: 6 } } : { bottom: { style: BorderStyle.SINGLE, size: center ? 4 : 6, color: center ? "1E2624" : "CFE0DC", space: 2 } },
+  });
   const bullet = (t) => new Paragraph({ children: [run(t)], bullet: { level: 0 }, spacing: { after: 20 } });
   const role = (left, right) => new Paragraph({ children: [run(left, { bold: true, size: 22 }), ...(right ? [new TextRun({ text: "\t" + right, font: F, size: 20, color: MUT })] : [])], tabStops: [{ type: TabStopType.RIGHT, position: 10080 }], spacing: { before: 100, after: 10 } });
   const { contact, certs } = resumeSections(r, p);
-  const kids = [para([run(p.name, { bold: true, size: 40 })], { after: 20 })];
-  if (contact) kids.push(para([run(contact, { color: MUT, size: 19 })], { after: 60 }));
-  if (r.target_title) kids.push(para([run(r.target_title, { bold: true, color: ACC, size: 22 })], { after: 40 }));
-  if (r.summary) { kids.push(sec("Summary"), para([run(r.summary)])); }
-  if (certs.length) { kids.push(sec("Certifications"), ...certs.map(bullet)); }
-  if ((r.experience || []).length) { kids.push(sec("Experience")); for (const e of r.experience) { kids.push(role(`${e.title}, ${e.employer}`, range(e.start, e.end))); if (e.location) kids.push(para([run(e.location, { italics: true, color: MUT, size: 19 })], { after: 20 })); kids.push(...(e.bullets || []).map(bullet)); } }
-  if ((r.education || []).length) { kids.push(sec("Education")); for (const e of r.education) { kids.push(role(e.school, e.end ? fmtDate(e.end) : "")); const sub = [e.program, e.status, e.gpa ? "GPA " + e.gpa : ""].filter(Boolean).join("  ·  "); if (sub) kids.push(para([run(sub, { italics: true, color: MUT, size: 19 })])); if (e.details) kids.push(para([run(e.details, { size: 20 })])); } }
+  const kids = [para([run(p.name, { bold: true, size: 40, color: T.band ? ACC : undefined })], { after: 20, center })];
+  if (contact) kids.push(para([run(contact, { color: MUT, size: 19 })], { after: 60, center }));
+  if (r.target_title) kids.push(para([run(r.target_title, { bold: !center, italics: center, color: T.band ? "C2602A" : ACC, size: 22 })], { after: 40, center }));
+  if (r.summary) kids.push(sec("Summary"), para([run(r.summary)]));
+  if (certs.length) kids.push(sec("Certifications"), ...certs.map(bullet));
+  if ((r.experience || []).length) {
+    kids.push(sec("Experience"));
+    for (const e of r.experience) {
+      kids.push(role(`${e.title}, ${e.employer}`, range(e.start, e.end)));
+      if (e.location) kids.push(para([run(e.location, { italics: true, color: MUT, size: 19 })], { after: 20 }));
+      kids.push(...(e.bullets || []).map(bullet));
+    }
+  }
+  if ((r.education || []).length) {
+    kids.push(sec("Education"));
+    for (const e of r.education) {
+      kids.push(role(e.school, e.end ? fmtDate(e.end) : ""));
+      const sub = [e.program, e.status, e.gpa ? "GPA " + e.gpa : ""].filter(Boolean).join("  ·  ");
+      if (sub) kids.push(para([run(sub, { italics: true, color: MUT, size: 19 })]));
+      if (e.details) kids.push(para([run(e.details, { size: 20 })]));
+    }
+  }
   const sk = r.skills || {}; const skl = [["Clinical", sk.clinical], ["Technical", sk.technical], ["Languages", sk.languages]].filter(([, v]) => v && v.length);
   if (skl.length) { kids.push(sec("Skills")); for (const [k, v] of skl) kids.push(para([run(k + ": ", { bold: true }), run(v.join(", "))])); }
-  if ((r.volunteer || []).length) { kids.push(sec("Volunteer")); for (const v of r.volunteer) { kids.push(role(`${v.role}, ${v.org}`, range(v.start, v.end))); if (v.hours) kids.push(para([run(`${v.hours} hours`, { italics: true, color: MUT, size: 19 })], { after: 20 })); kids.push(...(v.bullets || []).map(bullet)); } }
+  if ((r.volunteer || []).length) {
+    kids.push(sec("Volunteer"));
+    for (const v of r.volunteer) {
+      kids.push(role(`${v.role}, ${v.org}`, range(v.start, v.end)));
+      if (v.hours) kids.push(para([run(`${v.hours} hours`, { italics: true, color: MUT, size: 19 })], { after: 20 }));
+      kids.push(...(v.bullets || []).map(bullet));
+    }
+  }
   const doc = new Document({ creator: p.name, title: `${p.name} Resume`, sections: [{ properties: { page: { margin: { top: 900, bottom: 900, left: 1000, right: 1000 } } }, children: kids }] });
   return Packer.toBlob(doc);
+}
+
+// ---- Job match (ATS) check: same vocabulary as ky/vocab.py ATS_KEYWORDS ----
+const ATS_KEYWORDS = {
+  "vital signs": ["vital signs", "vitals", "blood pressure", "pulse", "temperature", "respirations"],
+  "activities of daily living (ADLs)": ["activities of daily living", "adls", "adl", "bathing", "dressing", "toileting", "grooming"],
+  "patient transfers": ["transfer", "transfers", "mobility", "ambulat", "wheelchair", "gait belt", "lift"],
+  "infection control": ["infection control", "infection prevention", "hand hygiene", "ppe", "isolation precautions", "sanitiz"],
+  "patient safety": ["patient safety", "fall prevention", "safely", "safety"],
+  "documentation": ["document", "charting", "recorded", "logged", "record"],
+  "electronic health records (EHR)": ["ehr", "emr", "electronic health record", "electronic medical record", "epic", "cerner", "meditech"],
+  "Epic": ["epic"],
+  "HIPAA": ["hipaa", "patient confidentiality", "patient privacy"],
+  "medical terminology": ["medical terminology"],
+  "specimen collection": ["specimen", "venipuncture", "blood draw", "phlebotomy", "urine sample"],
+  "EKG": ["ekg", "ecg", "electrocardiogram"],
+  "blood glucose monitoring": ["blood glucose", "glucometer", "fingerstick", "point of care testing", "poct"],
+  "intake and output": ["intake and output", "i&o"],
+  "medication reminders": ["medication reminder"],
+  "dementia care": ["dementia", "alzheimer", "memory care"],
+  "patient communication": ["communicat", "report", "explain"],
+  "escalating changes in condition": ["changes in condition", "change in condition", "reported changes", "reporting changes", "escalat"],
+  "customer service": ["customer service", "customer", "guest", "visitor"],
+  "teamwork": ["team", "collaborat"],
+  "time management": ["time management", "busy", "fast-paced", "multitask", "prioritiz"],
+  "de-escalation": ["de-escalat", "calm", "conflict", "complaint"],
+  "bilingual (Spanish)": ["spanish", "bilingual"],
+  "CPR / BLS": ["bls", "cpr", "basic life support"],
+  "stocking supplies": ["restock", "stock", "supplies", "supply"],
+  "patient transport": ["escort", "transport"],
+  "compassionate care": ["compassion", "empath", "dignity", "respect"],
+};
+function resumeText(r) {
+  return [r.target_title, r.summary, ...(r.certifications || []),
+    ...(r.experience || []).flatMap((e) => [e.title, ...(e.bullets || [])]),
+    ...(r.education || []).flatMap((e) => [e.program, e.details]),
+    ...Object.values(r.skills || {}).flat(),
+    ...(r.volunteer || []).flatMap((v) => [v.role, ...(v.bullets || [])])].filter(Boolean).join("\n");
+}
+function atsReport(j, r) {
+  if (!r) return null;
+  const post = `${j.title}\n${j.description || ""}`; const res = resumeText(r);
+  const rel = Object.keys(ATS_KEYWORDS).filter((k) => any(post, ATS_KEYWORDS[k]));
+  const matched = rel.filter((k) => any(res, ATS_KEYWORDS[k]));
+  const missing = rel.filter((k) => !matched.includes(k));
+  return { matched, missing, total: rel.length, pct: rel.length ? Math.floor((100 * matched.length) / rel.length + 0.5) : null };
 }
 
 function letterText(job, r, p) {
@@ -1058,23 +1418,30 @@ function jobCard(j) {
   const pay = j.payText || "Pay not listed";
   const age = daysAgo(j.posted);
   const ageText = age == null ? "" : age <= 0 ? "Posted today" : age === 1 ? "Posted yesterday" : `Posted ${age} days ago`;
+  const followUp = j.status === "applied" && j.appliedOn && daysAgo(j.appliedOn) >= 7;
+  const ats = atsReport(j, j.resume);
   const pills = [];
   if (!j.seen) pills.push(`<span class="pill new">New</span>`);
+  if (j.status && j.status !== "new") pills.push(`<span class="pill ${j.status === "skip" ? "ats" : "good"}">${esc(STATUS_LABEL[j.status] || j.status)}</span>`);
+  if (followUp) pills.push(`<span class="pill warn">Time to follow up</span>`);
   pills.push(`<span class="pill teal">${esc(j.roleLabel || "Patient care")}</span>`);
+  if (ats && ats.total) pills.push(`<span class="pill ats" title="Skills from the posting that your resume covers">Skills match ${ats.matched.length}/${ats.total}</span>`);
   for (const b of j.badges || []) pills.push(`<span class="pill good">${esc(b)}</span>`);
   for (const m of j.missing || []) pills.push(`<span class="pill warn">Needs ${esc(m)}</span>`);
   for (const f of j.flags || []) pills.push(`<span class="pill bad">${esc(f)}</span>`);
   const r = j.resume;
   const why = r?.why_this_job ? `<div class="why"><b>Ky says:</b> ${esc(r.why_this_job)}</div>` : "";
-  const status = `<label class="sr" style="position:absolute;left:-9999px" for="st-${j.key}">Status</label>
+  const status = `<label class="sr-only" for="st-${j.key}">Status</label>
     <select class="status" id="st-${j.key}" data-act="status" data-key="${j.key}">
-      ${[["new", "Not applied yet"], ["applied", "I applied"], ["interview", "Got an interview"], ["skip", "Not for me"]].map(([v, l]) => `<option value="${v}" ${j.status === v ? "selected" : ""}>${l}</option>`).join("")}
+      ${Object.entries(STATUS_LABEL).map(([v, l]) => `<option value="${v}" ${(j.status || "new") === v ? "selected" : ""}>${l}</option>`).join("")}
     </select>`;
   const resumeBtns = r
     ? `<button class="btn btn-primary btn-sm" data-act="preview" data-key="${j.key}">See my resume</button>
-       <button class="btn btn-soft btn-sm" data-act="pdf" data-key="${j.key}">Download PDF</button>
-       <button class="btn btn-soft btn-sm" data-act="docx" data-key="${j.key}">Download Word</button>`
+       <button class="btn btn-soft btn-sm" data-act="pdf" data-key="${j.key}">Download PDF</button>`
     : `<span class="small muted">I couldn't write this resume.</span> <button class="btn btn-soft btn-sm" data-act="retry" data-key="${j.key}">Try again</button>`;
+  const extra = followUp ? `<button class="btn btn-teal btn-sm" data-act="followup" data-key="${j.key}">Write a follow-up</button>`
+    : j.status === "interview" ? `<button class="btn btn-teal btn-sm" data-act="practice" data-key="${j.key}">Practice my interview</button>`
+    : j.status === "hired" ? `<button class="btn btn-teal btn-sm" data-act="loghours" data-key="${j.key}">Log hours here</button>` : "";
   return `<article class="job ${j.seen ? "" : "is-new"}" data-key="${j.key}">
     <div class="job-top">
       <div style="min-width:0">
@@ -1092,6 +1459,10 @@ function jobCard(j) {
     <div class="actions">
       ${resumeBtns}
       ${j.url ? `<a class="btn btn-teal btn-sm" href="${esc(j.url)}" target="_blank" rel="noopener">Open job posting</a>` : ""}
+    </div>
+    <div class="actions">
+      ${extra}
+      <button class="btn btn-soft btn-sm" data-act="ask" data-key="${j.key}">Ask Ky</button>
       <button class="btn btn-soft btn-sm" data-act="apply" data-key="${j.key}">Help me apply</button>
       ${status}
     </div>
@@ -1108,7 +1479,7 @@ function emptyJobs() {
 function renderJobs() {
   const list = [...state.jobs].sort((a, b) => (a.seen === b.seen ? String(b.foundAt).localeCompare(String(a.foundAt)) : a.seen ? 1 : -1));
   const f = state.filter;
-  const shown = list.filter((j) => f === "all" ? j.status !== "skip" : f === "new" ? !j.seen || j.status === "new" : ["applied", "interview"].includes(j.status));
+  const shown = list.filter((j) => f === "all" ? j.status !== "skip" : f === "new" ? !j.seen || j.status === "new" : ["applied", "interview", "hired"].includes(j.status));
   $("#jobs").innerHTML = shown.length ? shown.map(jobCard).join("") : (list.length ? `<p class="empty">Nothing here yet.</p>` : emptyJobs());
   const unseen = list.filter((j) => !j.seen).length;
   $("#jobsTitle").textContent = unseen ? `Your jobs (${unseen} new)` : "Your jobs";
@@ -1146,65 +1517,97 @@ function copyBlock(id, text) {
 }
 function wireCopy(dlg) { dlg.querySelectorAll("[data-copy]").forEach((b) => b.addEventListener("click", () => { const box = document.getElementById(b.dataset.copy); copy(box.value, box); })); }
 
-function resumeHTML(r, p) {
+function resumeHTML(r, p, tpl = state.template) {
   const { contact, certs } = resumeSections(r, p);
   const roles = (arr, a, b, sub) => (arr || []).map((e) => `<div class="row"><span>${esc(a(e))}</span><span>${esc(b(e))}</span></div>${sub(e) ? `<div class="sub">${esc(sub(e))}</div>` : ""}<ul>${(e.bullets || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`).join("");
-  const sk = r.skills || {};
-  return `<div class="paper">
-    <div class="pn">${esc(p.name)}</div>
-    <div class="pc">${esc(contact)}</div>
-    ${r.target_title ? `<div class="pt">${esc(r.target_title)}</div>` : ""}
+  const sk = r.skills || {}; const skl = [["Clinical", sk.clinical], ["Technical", sk.technical], ["Languages", sk.languages]].filter(([, v]) => v?.length);
+  return `<div class="paper tpl-${esc(tpl)}">
+    <div class="phead">
+      <div class="pn">${esc(p.name)}</div>
+      <div class="pc">${esc(contact)}</div>
+      ${r.target_title ? `<div class="pt">${esc(r.target_title)}</div>` : ""}
+    </div>
     ${r.summary ? `<div class="ps"><div class="ph">Summary</div>${esc(r.summary)}</div>` : ""}
     ${certs.length ? `<div class="ps"><div class="ph">Certifications</div><div class="certs">${certs.map((c) => `<span class="cert">${esc(c)}</span>`).join("")}</div></div>` : ""}
     ${(r.experience || []).length ? `<div class="ps"><div class="ph">Experience</div>${roles(r.experience, (e) => `${e.title}, ${e.employer}`, (e) => range(e.start, e.end), (e) => e.location)}</div>` : ""}
-    ${(r.education || []).length ? `<div class="ps"><div class="ph">Education</div>${(r.education).map((e) => `<div class="row"><span>${esc(e.school)}</span><span>${esc(fmtDate(e.end))}</span></div><div class="sub">${esc([e.program, e.status, e.gpa ? "GPA " + e.gpa : ""].filter(Boolean).join(" · "))}</div>${e.details ? `<div>${esc(e.details)}</div>` : ""}`).join("")}</div>` : ""}
-    ${[["Clinical", sk.clinical], ["Technical", sk.technical], ["Languages", sk.languages]].some(([, v]) => v?.length) ? `<div class="ps"><div class="ph">Skills</div>${[["Clinical", sk.clinical], ["Technical", sk.technical], ["Languages", sk.languages]].filter(([, v]) => v?.length).map(([k, v]) => `<div><b>${k}:</b> ${esc(v.join(", "))}</div>`).join("")}</div>` : ""}
+    ${(r.education || []).length ? `<div class="ps"><div class="ph">Education</div>${r.education.map((e) => `<div class="row"><span>${esc(e.school)}</span><span>${esc(fmtDate(e.end))}</span></div><div class="sub">${esc([e.program, e.status, e.gpa ? "GPA " + e.gpa : ""].filter(Boolean).join(" · "))}</div>${e.details ? `<div>${esc(e.details)}</div>` : ""}`).join("")}</div>` : ""}
+    ${skl.length ? `<div class="ps"><div class="ph">Skills</div>${skl.map(([k, v]) => `<div><b>${k}:</b> ${esc(v.join(", "))}</div>`).join("")}</div>` : ""}
     ${(r.volunteer || []).length ? `<div class="ps"><div class="ph">Volunteer</div>${roles(r.volunteer, (v) => `${v.role}, ${v.org}`, (v) => range(v.start, v.end), (v) => (v.hours ? v.hours + " hours" : ""))}</div>` : ""}
   </div>`;
 }
 
-function openPreview(j) {
+function openPreview(j, startTab = "r") {
   const p = state.profile; const r = j.resume; if (!p || !r) return;
   const qs = (r.questions_for_candidate || []).filter(Boolean);
   const tips = (r.interview_tips || []).filter(Boolean);
-  const removed = (j.removedFacts || []);
+  const removed = j.removedFacts || [];
+  const ats = atsReport(j, r);
+  const segBtns = () => Object.entries(TPL).map(([k, t]) => `<button type="button" data-tpl="${k}" aria-pressed="${state.template === k}">${t.label}</button>`).join("");
+  const formatChecks = () => {
+    let pages = 1; try { pages = buildPDF(r, p).pages; } catch {}
+    const items = [
+      [pages === 1, pages === 1 ? "Fits on one page" : `Runs ${pages} pages. Ask Ky to shorten it`],
+      [true, "Real text that applicant systems can read (not a picture)"],
+      [true, "Standard section headings: Summary, Experience, Education, Skills"],
+      [!!(p.contact?.email || p.contact?.phone), p.contact?.email || p.contact?.phone ? "Your contact info is at the top" : "Add your phone or email to your resume"],
+      [true, "One column, no tables or text boxes"],
+    ];
+    return `<ul class="checks">${items.map(([ok, t]) => `<li class="${ok ? "" : "no"}">${esc(t)}</li>`).join("")}</ul>`;
+  };
   modal(`
     <div class="dialog-head"><div><h2>Your resume for ${esc(j.company)}</h2><p class="muted small">${esc(j.title)}</p></div><button class="x" data-close aria-label="Close">×</button></div>
-    <div class="tabs" role="tablist">
-      <button role="tab" aria-selected="true" data-tab="r">Resume</button>
-      <button role="tab" aria-selected="false" data-tab="c">Cover letter</button>
-      <button role="tab" aria-selected="false" data-tab="t">Tips</button>
+    <div class="tabs" role="tablist" style="flex-wrap:wrap">
+      <button role="tab" aria-selected="${startTab === "r"}" data-tab="r">Resume</button>
+      <button role="tab" aria-selected="${startTab === "c"}" data-tab="c">Cover letter</button>
+      <button role="tab" aria-selected="${startTab === "m"}" data-tab="m">Job match</button>
+      <button role="tab" aria-selected="${startTab === "t"}" data-tab="t">Tips</button>
     </div>
-    <div data-pane="r">
-      <div class="paper-wrap">${resumeHTML(r, p)}</div>
+    <div data-pane="r" ${startTab === "r" ? "" : "hidden"}>
+      <div class="actions" style="margin-bottom:10px"><span class="small muted">Design:</span><div class="seg" role="group" aria-label="Resume design">${segBtns()}</div></div>
+      <div class="paper-wrap" id="paperWrap">${resumeHTML(r, p)}</div>
       <div class="actions" style="margin-top:12px">
         <button class="btn btn-primary btn-sm" data-dl="pdf">Download PDF</button>
         <button class="btn btn-soft btn-sm" data-dl="docx">Download Word</button>
-        <span class="small muted">Upload the PDF or Word file when you apply. Both are made so application systems can read them.</span>
+        <span class="small muted">Upload the PDF or Word file when you apply. Every design is built so application systems can read it.</span>
       </div>
     </div>
-    <div data-pane="c" hidden>
+    <div data-pane="c" ${startTab === "c" ? "" : "hidden"}>
       <div class="paper-wrap"><div class="paper letter">${letterText(j, r, p).split("\n\n").map((x) => `<p>${esc(x).replace(/\n/g, "<br>")}</p>`).join("")}</div></div>
       <div class="actions" style="margin-top:12px">
         <button class="btn btn-primary btn-sm" data-dl="letter">Download Word</button>
         <button class="btn btn-soft btn-sm" data-copyletter>Copy text</button>
       </div>
     </div>
-    <div data-pane="t" hidden style="display:flex;flex-direction:column;gap:12px">
+    <div data-pane="m" ${startTab === "m" ? "" : "hidden"} style="display:flex;flex-direction:column;gap:14px">
+      ${ats && ats.total ? `<div><h3>Matches ${ats.matched.length} of ${ats.total} skills this job lists</h3>
+        <p class="small muted">Applicant tracking systems look for the job's own words. I used them wherever they're true for you.</p>
+        <div class="kw">${ats.matched.map((k) => `<span class="pill good">${esc(k)}</span>`).join("")}</div>
+        ${ats.missing.length ? `<p class="small" style="margin-top:10px"><b>Not on your resume:</b> only add these if they're true for you.</p><div class="kw">${ats.missing.map((k) => `<span class="pill warn">${esc(k)}</span>`).join("")}</div>` : ""}</div>`
+      : `<p class="muted">This posting didn't list many specific skills, so there's nothing extra to match.</p>`}
+      <div><h3>Format check</h3>${formatChecks()}</div>
+    </div>
+    <div data-pane="t" ${startTab === "t" ? "" : "hidden"} style="display:flex;flex-direction:column;gap:12px">
       ${qs.length ? `<div class="notice info"><div><b>Make it even stronger</b>Add these to your resume next time you upload it:<ul>${qs.map((q) => `<li>${esc(q)}</li>`).join("")}</ul></div></div>` : ""}
       ${tips.length ? `<div><h3>If they call you for an interview</h3><ul>${tips.map((q) => `<li>${esc(q)}</li>`).join("")}</ul></div>` : ""}
       ${(j.missing || []).length ? `<div class="notice warn"><div><b>Heads up</b>This job asks for ${esc(j.missing.join(", "))}, which isn't on your resume. Some employers still hire people who are getting certified, so it can be worth applying anyway.</div></div>` : ""}
       ${removed.length ? `<div class="notice info"><div><b>Things I left out to keep it honest</b><ul>${removed.slice(0, 6).map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></div>` : ""}
-      ${!qs.length && !tips.length && !removed.length ? `<p class="muted">No extra tips for this one. You're all set!</p>` : ""}
-    </div>`, (dlg) => {
+      <button class="btn btn-teal btn-sm" data-askky style="align-self:flex-start">Ask Ky about this job</button>
+    </div>`, (dlg, close) => {
     dlg.querySelectorAll("[data-tab]").forEach((t) => t.addEventListener("click", () => {
       dlg.querySelectorAll("[data-tab]").forEach((x) => x.setAttribute("aria-selected", x === t));
       dlg.querySelectorAll("[data-pane]").forEach((pn) => (pn.hidden = pn.dataset.pane !== t.dataset.tab));
     }));
-    dlg.querySelector('[data-dl="pdf"]').addEventListener("click", () => save(fileBase(j, p) + "_Resume.pdf", buildPDF(r, p)));
+    dlg.querySelectorAll("[data-tpl]").forEach((b) => b.addEventListener("click", () => {
+      state.template = b.dataset.tpl;
+      dlg.querySelectorAll("[data-tpl]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+      $("#paperWrap", dlg).innerHTML = resumeHTML(r, p);
+      persistSettings();
+    }));
+    dlg.querySelector('[data-dl="pdf"]').addEventListener("click", () => save(fileBase(j, p) + "_Resume.pdf", buildPDF(r, p).blob));
     dlg.querySelector('[data-dl="docx"]').addEventListener("click", () => save(fileBase(j, p) + "_Resume.docx", buildDOCX(r, p)));
     dlg.querySelector('[data-dl="letter"]').addEventListener("click", () => save(fileBase(j, p) + "_Cover_Letter.docx", buildLetterDOCX(j, r, p)));
     dlg.querySelector("[data-copyletter]").addEventListener("click", async () => { try { await navigator.clipboard.writeText(letterText(j, r, p)); toast("Cover letter copied"); } catch { toast("Select the text and copy it."); } });
+    dlg.querySelector("[data-askky]").addEventListener("click", () => { close(); openChat({ job: j }); });
   });
 }
 
@@ -1229,7 +1632,7 @@ function openApply(j) {
     <p class="small">Still want my help? Copy this message and send it to me in your Claude chat:</p>
     ${copyBlock("applyMsg", msg)}`, (dlg) => {
     wireCopy(dlg);
-    dlg.querySelector('[data-dl="pdf"]')?.addEventListener("click", () => save(fileBase(j, state.profile) + "_Resume.pdf", buildPDF(j.resume, state.profile)));
+    dlg.querySelector('[data-dl="pdf"]')?.addEventListener("click", () => save(fileBase(j, state.profile) + "_Resume.pdf", buildPDF(j.resume, state.profile).blob));
   });
 }
 
@@ -1247,13 +1650,441 @@ function openAlerts() {
 }
 
 /* ===================================================================
+   Ky's little moves
+   =================================================================== */
+const REDUCED = (() => { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } })();
+const KY_FACE = `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M20 36 C15 14 29 6 37 17 L38 31 Z" fill="var(--fur)"/><path d="M80 36 C85 14 71 6 63 17 L62 31 Z" fill="var(--fur)"/><path d="M25 31 C23 19 30 15 34 20 L34 29 Z" fill="var(--blush)"/><path d="M75 31 C77 19 70 15 66 20 L66 29 Z" fill="var(--blush)"/><ellipse cx="50" cy="57" rx="34" ry="30" fill="var(--fur)"/><ellipse cx="50" cy="71" rx="17" ry="11" fill="var(--cream)"/><ellipse cx="38" cy="56" rx="6.5" ry="8" fill="var(--eye)"/><ellipse cx="62" cy="56" rx="6.5" ry="8" fill="var(--eye)"/><circle cx="40.5" cy="53" r="2.6" fill="#FFFFFF"/><circle cx="64.5" cy="53" r="2.6" fill="#FFFFFF"/><path d="M47 66 Q50 64 53 66 Q50 69 47 66 Z" fill="var(--eye)"/><ellipse cx="27" cy="68" rx="5" ry="3.2" fill="var(--blush)" opacity=".85"/><ellipse cx="73" cy="68" rx="5" ry="3.2" fill="var(--blush)" opacity=".85"/></svg>`;
+const ACORN = `<svg viewBox="0 0 24 28" aria-hidden="true"><ellipse cx="12" cy="17" rx="8" ry="9.5" fill="#D9A15B"/><path d="M3 11 Q12 2 21 11 Q12 15 3 11 Z" fill="#7A4A26"/><rect x="11" y="1" width="2.4" height="5" rx="1" fill="#7A4A26"/></svg>`;
+const KY_TIPS = [
+  "Tip: hospitals often hire patient care techs who are still in school. Mention that you're a pre-nursing student!",
+  "Tip: log every shift in your hours list below. Future you will thank you.",
+  "Tip: follow up about a week after you apply. A short, friendly email is perfect.",
+  "Tip: look for the Paid training badge. Some employers will train you for free.",
+  "Tip: before you leave any job, ask your supervisor if they'd be a reference.",
+  "Tip: questions about jobs or hours? Tap Ask Ky in the corner.",
+  "Fun fact: squirrels help plant forests by burying acorns and forgetting some. I never forget your jobs, though.",
+  "Tip: tap See my resume, then Job match, to see which skills from the posting your resume covers.",
+];
+let tipIdx = Math.floor(Math.random() * KY_TIPS.length);
+
+function trick(name, ms = 900) {
+  if (REDUCED) return;
+  kyEl.classList.remove("jump", "spin", "wiggle", "stretch");
+  void kyEl.getBoundingClientRect();
+  kyEl.classList.add(name);
+  setTimeout(() => kyEl.classList.remove(name), ms);
+}
+function heart() {
+  if (REDUCED) return;
+  const h = document.createElement("span"); h.className = "heart"; h.textContent = "♥";
+  h.style.left = 40 + Math.random() * 70 + "px";
+  $("#kyWrap").append(h); setTimeout(() => h.remove(), 1300);
+}
+function petKy() {
+  wake();
+  trick(["jump", "spin", "wiggle"][Math.floor(Math.random() * 3)]);
+  heart();
+  if (!state.running) { tipIdx = (tipIdx + 1) % KY_TIPS.length; ky(null, ["Hehe!", "That tickles!", "Hi again!", "Squeak!"][Math.floor(Math.random() * 4)], KY_TIPS[tipIdx]); }
+}
+function kyConfetti() {
+  if (REDUCED) return;
+  const box = document.createElement("div"); box.className = "acorn-rain"; box.setAttribute("aria-hidden", "true");
+  for (let i = 0; i < 22; i++) {
+    const a = document.createElement("span");
+    a.innerHTML = ACORN;
+    a.style.left = Math.random() * 100 + "%";
+    a.style.animationDuration = 1.6 + Math.random() * 1.2 + "s";
+    a.style.animationDelay = Math.random() * 0.5 + "s";
+    a.style.setProperty("--r", (Math.random() * 720 - 360).toFixed(0) + "deg");
+    a.style.width = a.style.height = 16 + Math.random() * 14 + "px";
+    box.append(a);
+  }
+  document.body.append(box); setTimeout(() => box.remove(), 3400);
+}
+function kyScurry() { $("#runner").hidden = false; }
+
+// eyes follow the pointer
+let lookRAF = 0;
+function look(x, y) {
+  if (REDUCED || lookRAF) return;
+  lookRAF = requestAnimationFrame(() => {
+    lookRAF = 0;
+    const r = kyEl.getBoundingClientRect(); if (!r.width) return;
+    const dx = x - (r.left + r.width * 0.46), dy = y - (r.top + r.height * 0.44);
+    const d = Math.hypot(dx, dy) || 1, k = Math.min(1, d / 260);
+    $("#kyPupils").setAttribute("transform", `translate(${((dx / d) * 3.2 * k).toFixed(2)} ${((dy / d) * 2.6 * k).toFixed(2)})`);
+  });
+}
+// naps when nobody's around
+let idleTimer = 0;
+function wake() {
+  clearTimeout(idleTimer);
+  if ($("#kyWrap").classList.contains("sleeping")) { $("#kyWrap").classList.remove("sleeping"); kyEl.classList.remove("sleep"); trick("stretch", 800); }
+  idleTimer = setTimeout(() => {
+    if (state.running || !$("#chat").hidden || REDUCED) return wake();
+    $("#kyWrap").classList.add("sleeping"); kyEl.classList.add("sleep");
+  }, 75000);
+}
+function earTwitches() {
+  const go = () => {
+    if (!REDUCED && !kyEl.classList.contains("sleep") && !document.hidden) { kyEl.classList.add("twitch"); setTimeout(() => kyEl.classList.remove("twitch"), 700); }
+    setTimeout(go, 6000 + Math.random() * 7000);
+  };
+  setTimeout(go, 4000);
+}
+function fabPeek() {
+  if (REDUCED) return;
+  let n = 0;
+  const go = () => { if (lsGet("ky.chatOpened") || n++ > 4) return; if ($("#chat").hidden) { $("#fab").classList.add("peek"); setTimeout(() => $("#fab").classList.remove("peek"), 1200); } setTimeout(go, 22000); };
+  setTimeout(go, 9000);
+}
+
+/* ===================================================================
+   Job status
+   =================================================================== */
+const todayISO = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+async function setStatus(j, status) {
+  const patch = { status, seen: true };
+  if (status === "applied" && !j.appliedOn) patch.appliedOn = todayISO();
+  await store.patchJob(j.key, patch);
+  if (status === "applied") { ky("happy", "Yay!", "Another application sent! That's how you get there. I'll remind you to follow up in a week."); trick("jump"); }
+  if (status === "interview") { ky("happy", "An interview!", "That's huge! Tap Practice my interview on that job and I'll help you get ready."); kyConfetti(); }
+  if (status === "hired") { ky("happy", "You got the job!!", "I'm so proud of you! Log your shifts in Your patient-care hours so you have a record for nursing school."); kyConfetti(); }
+}
+
+/* ===================================================================
+   Search preferences
+   =================================================================== */
+let prefsTimer = 0;
+function savePrefsSoon() { clearTimeout(prefsTimer); prefsTimer = setTimeout(() => persistSettings(), 700); }
+function renderPrefs() {
+  const on = state.prefs.roles?.length ? state.prefs.roles : DEFAULT_ROLES;
+  $("#roles").innerHTML = ROLE_OPTIONS.map(([id, label]) => `<button type="button" data-role="${id}" aria-pressed="${on.includes(id)}">${esc(label)}</button>`).join("");
+  $("#sched").innerHTML = SCHEDULES.map(([id, l]) => `<button type="button" role="radio" data-sched="${id}" aria-checked="${state.prefs.schedule === id}">${l}</button>`).join("");
+  $("#shifts").innerHTML = SHIFT_OPTIONS.map(([id, l]) => `<button type="button" data-shift="${id}" aria-pressed="${state.prefs.shifts.includes(id)}">${l}</button>`).join("");
+}
+
+/* ===================================================================
+   Patient-care hours
+   =================================================================== */
+const KIND_LABEL = { direct: "Hands-on patient care", other: "Other healthcare work", volunteer: "Volunteer" };
+const fmtH = (n) => (Math.round(n * 100) / 100).toLocaleString();
+function hoursTotals() {
+  const t = { total: 0, direct: 0, byPlace: {} };
+  for (const h of state.hours) {
+    const n = Number(h.hours) || 0;
+    t.total += n; if (h.kind === "direct") t.direct += n;
+    t.byPlace[h.place] = (t.byPlace[h.place] || 0) + n;
+  }
+  return t;
+}
+async function addHours(inp) {
+  const n = Number(inp.hours);
+  if (!(n > 0 && n <= 24)) throw new Error("Hours should be a number between 0.25 and 24.");
+  const place = String(inp.place || "").trim(); if (!place) throw new Error("Where did you work?");
+  const id = "h" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const entry = {
+    date: /^\d{4}-\d{2}-\d{2}$/.test(String(inp.date || "")) ? String(inp.date) : todayISO(),
+    place: place.slice(0, 120), hours: Math.round(n * 4) / 4,
+    kind: KIND_LABEL[inp.kind] ? inp.kind : "direct",
+    supervisor: String(inp.supervisor || "").slice(0, 120), contact: String(inp.contact || "").slice(0, 160),
+    notes: String(inp.notes || "").slice(0, 300), createdAt: new Date().toISOString(),
+  };
+  await store.put("hours", id, entry);
+  return { id, ...entry };
+}
+let hoursConfirm = null, hoursAll = false;
+function renderHours() {
+  const t = hoursTotals();
+  $("#hTotal").textContent = fmtH(t.total);
+  $("#hDirect").textContent = fmtH(t.direct);
+  const g = Number(state.hoursGoal) || 0;
+  if (document.activeElement !== $("#hGoal")) $("#hGoal").value = g ? String(g) : "";
+  if (g > 0) {
+    const pct = Math.min(100, Math.round((t.direct / g) * 100));
+    $("#hBar").style.width = pct + "%";
+    $("#hGoalText").textContent = t.direct >= g ? `You reached your goal of ${g} hands-on hours. Amazing!` : `${fmtH(t.direct)} of ${g} hands-on hours (${pct}%)`;
+  } else { $("#hBar").style.width = "0%"; $("#hGoalText").textContent = "Set a goal if a program you like asks for a number of hours."; }
+  const places = new Set([...state.jobs.filter((j) => j.status === "hired").map((j) => j.company), ...state.hours.map((h) => h.place), ...(state.profile?.experience || []).filter((e) => e.patient_care && /present/i.test(e.end || "")).map((e) => e.employer)].filter(Boolean));
+  $("#hPlaces").innerHTML = [...places].map((p) => `<option value="${esc(p)}"></option>`).join("");
+  const sorted = [...state.hours].sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.createdAt).localeCompare(String(a.createdAt)));
+  if (!sorted.length) { $("#hoursList").innerHTML = `<p class="small muted">No hours logged yet. When you work a shift or volunteer, add it above, or tell Ky in the chat ("I worked 8 hours at Sunrise today").</p>`; return; }
+  const shown = hoursAll ? sorted : sorted.slice(0, 6);
+  $("#hoursList").innerHTML = shown.map((h) => `<div class="hrow">
+      <span class="when">${esc(fmtDay(h.date))}</span>
+      <span class="place"><b>${esc(h.place)}</b> <span class="small muted">· ${esc(KIND_LABEL[h.kind] || "")}${h.supervisor ? " · " + esc(h.supervisor) : ""}</span></span>
+      <span class="hrs">${fmtH(Number(h.hours) || 0)} h</span>
+      ${hoursConfirm === h.id
+        ? `<span class="small">Remove? <button class="linkbtn" data-hdel="${h.id}">Yes</button> <button class="linkbtn" data-hkeep>No</button></span>`
+        : `<button class="linkbtn small" data-hask="${h.id}">Remove</button>`}
+    </div>`).join("") + (sorted.length > 6 ? `<button class="linkbtn small" data-hall style="margin-top:8px">${hoursAll ? "Show fewer" : `Show all ${sorted.length}`}</button>` : "");
+}
+function fmtDay(iso) { const m = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${MONTHS[+m[2] - 1]} ${+m[3]}, ${m[1]}` : iso; }
+function hoursCSV() {
+  const rows = [["Date", "Place", "Hours", "Kind", "Supervisor", "Supervisor contact", "What I did"]];
+  for (const h of [...state.hours].sort((a, b) => String(a.date).localeCompare(String(b.date)))) rows.push([h.date, h.place, h.hours, KIND_LABEL[h.kind] || h.kind, h.supervisor || "", h.contact || "", h.notes || ""]);
+  const t = hoursTotals(); rows.push([], ["Total hours", "", fmtH(t.total)], ["Hands-on patient care", "", fmtH(t.direct)]);
+  return rows.map((r) => r.map((c) => { const s = String(c ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }).join(",")).join("\r\n");
+}
+
+/* ===================================================================
+   Ask Ky chat
+   =================================================================== */
+const chat = { msgs: (lsGet("ky.chat") || []).filter((m) => !m.pending), focus: null, focusFresh: false, ctl: null, busy: false };
+const GENERAL_CHIPS = ["What counts as patient-care hours?", "Should I apply if I don't have my CNA yet?", "Which of my jobs is best for nursing school?", "How do I follow up after applying?", "What should I wear to a hospital interview?", "How many hours have I logged?"];
+const JOB_CHIPS = ["Is this a good job for me?", "What would I do on a shift?", "How should I answer \"Why this job?\"", "What should I ask them in the interview?"];
+const focusedJob = () => state.jobs.find((j) => j.key === chat.focus) || null;
+
+function openChat({ job = null, send = null } = {}) {
+  if (job) { chat.focus = job.key; chat.focusFresh = true; if (!job.seen) store.patchJob(job.key, { seen: true }); }
+  $("#chat").hidden = false; $("#fab").hidden = true; lsSet("ky.chatOpened", true);
+  renderChat();
+  if (send) sendChat(send); else setTimeout(() => $("#chatIn").focus(), 60);
+}
+function closeChat() { $("#chat").hidden = true; $("#fab").hidden = false; $("#fab").focus(); }
+function saveChat() { lsSet("ky.chat", chat.msgs.filter((m) => !m.pending).slice(-30)); }
+
+function mdLite(t) {
+  const inline = (s) => s.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+  let html = "", list = null;
+  for (const raw of esc(t).split("\n")) {
+    const ul = raw.match(/^\s*[-*•]\s+(.*)/), ol = raw.match(/^\s*\d+[.)]\s+(.*)/);
+    const type = ul ? "ul" : ol ? "ol" : null;
+    if (type) { if (list !== type) { if (list) html += `</${list}>`; html += `<${type}>`; list = type; } html += `<li>${inline((ul || ol)[1])}</li>`; continue; }
+    if (list) { html += `</${list}>`; list = null; }
+    const line = raw.replace(/^#{1,6}\s*/, "").trim();
+    if (line) html += `<p>${inline(line)}</p>`;
+  }
+  if (list) html += `</${list}>`;
+  return html;
+}
+function greetingFor(f) {
+  const first = state.profile?.name?.split(" ")[0];
+  return f ? `Let's talk about **${f.title}** at ${f.company}. What would you like to know?`
+    : `Hi${first ? " " + first : ""}! I can answer questions about applying for jobs, interviews, certifications, and getting patient-care hours for nursing school. What's on your mind?`;
+}
+function renderChat() {
+  const f = focusedJob();
+  $("#chatFocus").hidden = !f; if (f) $("#chatFocusText").textContent = `Talking about: ${f.title} at ${f.company}`;
+  const items = [];
+  if (!chat.msgs.length || chat.focusFresh) items.push(`<div class="msg kyb">${mdLite(greetingFor(f))}</div>`);
+  chat.msgs.forEach((m, i) => {
+    if (chat.focusFresh && !m.pending) return; // fresh topic: start from the greeting
+    if (m.role === "user") items.push(`<div class="msg me">${esc(m.content).replace(/\n/g, "<br>")}</div>`);
+    else if (m.role === "note") items.push(`<div class="msg note ${m.undone ? "undone" : ""}">${esc(m.content)}${m.undo && !m.undone ? ` <button class="linkbtn small" data-undo="${i}" type="button">Undo</button>` : ""}</div>`);
+    else items.push(`<div class="msg kyb ${m.error ? "err" : ""}" data-i="${i}">${m.content ? mdLite(m.content) : `<span class="typing" role="img" aria-label="Ky is writing"><i></i><i></i><i></i></span>`}${m.error ? `<p class="small">${esc(m.error)}</p>` : ""}</div>`);
+  });
+  $("#chatLog").innerHTML = items.join("");
+  $("#chatLog").scrollTop = $("#chatLog").scrollHeight;
+  const chips = chat.busy ? [] : (!chat.msgs.length || chat.focusFresh) ? (f ? JOB_CHIPS : GENERAL_CHIPS) : [];
+  $("#chatChips").innerHTML = chips.map((c) => `<button type="button" data-chip>${esc(c)}</button>`).join("");
+  $("#chatSend").hidden = chat.busy; $("#chatStop").hidden = !chat.busy;
+}
+function paintMsg(m) {
+  const el = $(`#chatLog [data-i="${chat.msgs.indexOf(m)}"]`); if (!el) return renderChat();
+  el.innerHTML = mdLite(m.content); $("#chatLog").scrollTop = $("#chatLog").scrollHeight;
+}
+function addNote(text, undo, before) {
+  const note = { role: "note", content: text, undo };
+  const at = before ? chat.msgs.indexOf(before) : -1;
+  if (at >= 0) chat.msgs.splice(at, 0, note); else chat.msgs.push(note);
+  renderChat();
+}
+
+const CHAT_RULES = `You are Ky, a warm, upbeat squirrel and a knowledgeable friend who helps one person get entry-level healthcare jobs on her way to becoming a nurse. She is new to AI, so write the way a kind friend talks.
+
+How to answer:
+- Short first: 2 to 6 sentences, or a short list. Offer to go deeper. Plain words, no jargon. Use "- " bullets or "1." steps when listing. No headings or tables. Bold sparingly with **double asterisks**.
+- Stay on topic: job searching, applications, resumes, cover letters, interviews, starting a healthcare job, certifications (CNA, BLS/CPR, phlebotomy, EKG, medical assistant, EMT), patient-care experience and hours, nursing school prerequisites and applications, balancing work and school. If she asks about something else, answer briefly and kindly steer back.
+- Use what you know about her (below) to make answers specific: her jobs, statuses, hours, certifications. Refer to jobs by title and employer.
+- When she wants to do something in her helper, tell her which button to tap: "See my resume", "Download PDF", "Open job posting", "Help me apply", the status menu on a job, "Log hours", "Fine-tune my search", "Turn on job alerts".
+
+Facts to get right:
+- "Clinical hours" in nursing usually means the supervised clinical rotations students do during nursing school. What she is building now is healthcare or patient-care experience. Explain this gently when it comes up.
+- Many nursing programs don't require a set number of experience hours to apply. Experience (especially as a CNA) can strengthen an application, and some programs require a CNA certificate or healthcare experience as a prerequisite. Other programs (for example physician assistant programs) do count patient-care hours. Requirements vary by school: always tell her to check each program's official admissions page, and never state a specific program's requirement as fact.
+- Direct patient care usually means hands-on work with patients: vital signs, help with daily living (bathing, dressing, feeding), transfers, specimen collection, monitoring. Front desk, transport-only or scribe work is healthcare exposure but often not hands-on care.
+- Good habits: log every shift with the supervisor's name and contact, ask for a reference letter before leaving a job, keep certifications current.
+
+Rules:
+- Never suggest putting anything untrue on a resume or application. If she lacks a requirement, explain honest options: apply anyway when it says "preferred", look for employers that train, get certified.
+- You're not a lawyer, doctor or financial advisor. For pay, benefits, legal or immigration questions, say what's generally true and point her to the employer or an official source. Never give medical advice about patients.
+- Never ask for or repeat passwords, Social Security numbers or bank details.
+- Don't make up job postings, employers, pay or deadlines. Only talk about jobs listed below, or tell her to tap Start the search.
+- If she seems stressed or discouraged, be supportive first, then give one small next step.
+- If tools are available: use log_hours only when she clearly says she worked or volunteered hours (ask for the place or number of hours if missing), and set_job_status only when she clearly says she applied, got an interview, got the job, or isn't interested. Confirm in one short sentence afterwards.`;
+
+function chatContext() {
+  const p = state.profile, t = hoursTotals(), f = focusedJob();
+  const ctx = {
+    today: todayISO(),
+    her: p ? {
+      first_name: (p.name || "").split(" ")[0], city: p.location || "",
+      certifications: (p.certifications || []).map((c) => [c.name, c.expires ? "expires " + c.expires : ""].filter(Boolean).join(", ")),
+      past_roles: (p.experience || []).map((e) => ({ title: e.title, employer: e.employer, dates: range(e.start, e.end), patient_care: !!e.patient_care })),
+      education: (p.education || []).map((e) => ({ school: e.school, program: e.program, status: e.status })),
+      volunteer: (p.volunteer || []).map((v) => ({ role: v.role, org: v.org, hours: v.hours })),
+    } : "She hasn't added her resume yet.",
+    zip: state.zip || "not set",
+    search_preferences: { job_types: (state.prefs.roles?.length ? state.prefs.roles : DEFAULT_ROLES).map((id) => ROLE_OPTIONS.find((r) => r[0] === id)?.[1]), schedule: state.prefs.schedule, shifts_she_can_work: state.prefs.shifts },
+    jobs: [...state.jobs].sort((a, b) => String(b.foundAt).localeCompare(String(a.foundAt))).slice(0, 15).map((j) => ({
+      key: j.key, title: j.title, employer: j.company, location: j.location, pay: j.payText || "not listed",
+      status: STATUS_LABEL[j.status || "new"], applied_on: j.appliedOn || null, badges: j.badges, missing_requirements: j.missing,
+      patient_care_rating: clinWord(j.clinical), fit: fitWord(j), red_flags: j.flags,
+    })),
+    hours_log: { total: Math.round(t.total * 100) / 100, hands_on_patient_care: Math.round(t.direct * 100) / 100, by_place: t.byPlace, her_goal: Number(state.hoursGoal) || null,
+      recent: [...state.hours].sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 5).map((h) => ({ date: h.date, place: h.place, hours: h.hours, kind: KIND_LABEL[h.kind] })) },
+    job_alerts: state.alerts?.on ? "on" : "off",
+  };
+  if (f) {
+    const r = f.resume || {};
+    ctx.focused_job = { key: f.key, title: f.title, employer: f.company, location: f.location, pay: f.payText, url: f.url,
+      description: String(f.description || "").slice(0, 5000), ky_said: r.why_this_job, tailored_summary: r.summary,
+      tailored_highlights: (r.experience || []).flatMap((e) => e.bullets || []).slice(0, 6), cover_letter: r.cover_letter };
+  }
+  return JSON.stringify(ctx);
+}
+
+function chatTools(me) {
+  return [
+    {
+      name: "log_hours",
+      description: "Add one entry to her patient-care hours log when she says she worked or volunteered. Returns the saved entry and her new totals.",
+      inputSchema: { type: "object", properties: {
+        date: { type: "string", description: "YYYY-MM-DD. Use today's date from the context if she says today." },
+        place: { type: "string", description: "Where she worked or volunteered" },
+        hours: { type: "number", description: "Number of hours, e.g. 8 or 4.5" },
+        kind: { type: "string", enum: ["direct", "other", "volunteer"], description: "direct = hands-on patient care" },
+        supervisor: { type: "string" }, notes: { type: "string" } }, required: ["place", "hours"] },
+      async execute(input) {
+        const e = await addHours(input);
+        addNote(`Logged ${fmtH(e.hours)} hours at ${e.place}`, { type: "hour", id: e.id }, me);
+        const t = hoursTotals();
+        return { saved: true, date: e.date, place: e.place, hours: e.hours, total_hours: t.total + e.hours, hands_on: t.direct + (e.kind === "direct" ? e.hours : 0) };
+      },
+    },
+    {
+      name: "set_job_status",
+      description: "Change the status of one of her saved jobs (use the job key from the context) when she says she applied, got an interview, got the job, or isn't interested.",
+      inputSchema: { type: "object", properties: { key: { type: "string" }, status: { type: "string", enum: ["new", "applied", "interview", "hired", "skip"] } }, required: ["key", "status"] },
+      async execute(input) {
+        const j = state.jobs.find((x) => x.key === String(input.key)); const st = String(input.status);
+        if (!j) throw new Error("No saved job with that key.");
+        if (!STATUS_LABEL[st]) throw new Error("Unknown status.");
+        const prev = { status: j.status || "new", appliedOn: j.appliedOn ?? null };
+        await setStatus(j, st);
+        addNote(`${j.title} at ${j.company}: ${STATUS_LABEL[st]}`, { type: "status", key: j.key, prev }, me);
+        return { ok: true };
+      },
+    },
+  ];
+}
+function chatErr(code) {
+  return ({
+    not_granted: "I need your OK to use Claude. Ask again and tap Allow when Claude asks.",
+    rate_limited: "We've used a lot of Claude for now. Let's chat again a little later!",
+    refused: "I can't help with that one. Could you ask it another way?",
+    prompt_too_large: "That was a lot for me to read at once. Tap Start over and ask again.",
+    sampling_disabled: "Claude isn't available on this account right now.",
+    session_expired: "Please sign in to Claude again, then reopen this page.",
+  })[code] || "Something went wrong. Try asking again.";
+}
+async function sendChat(text) {
+  text = String(text || "").trim(); if (!text || chat.busy) return;
+  wake();
+  if (chat.focusFresh) { chat.focusFresh = false; }
+  chat.msgs.push({ role: "user", content: text });
+  if (!cap.sample) { chat.msgs.push({ role: "assistant", content: "I can only chat when this page is open inside Claude. Open me from your Claude chat and ask again!" }); renderChat(); saveChat(); return; }
+  const me = { role: "assistant", content: "", pending: true }; chat.msgs.push(me);
+  chat.busy = true; chat.ctl = new AbortController(); renderChat();
+  const history = chat.msgs.filter((m) => (m.role === "user" || m.role === "assistant") && !m.pending && m.content && !m.error).slice(-16);
+  const turns = [{ role: "user", content: CHAT_RULES + "\n\nWhat you know about her right now (JSON):\n" + chatContext() }, ...history.map((m) => ({ role: m.role, content: m.content }))];
+  const opts = { signal: chat.ctl.signal, cache: false, onText: ({ text: t }) => { me.content = t; paintMsg(me); } };
+  try { const lim = await cap.sample.limits(); if (lim?.tools) opts.tools = chatTools(me); } catch {}
+  try {
+    const res = await cap.sample(turns, opts);
+    me.content = res.text + (res.truncated ? "\n\n(I ran out of room. Ask me to keep going!)" : "");
+  } catch (e) {
+    me.content = e?.text || "";
+    if (e?.code === "cancelled") { if (!me.content) me.content = "(Stopped)"; }
+    else me.error = chatErr(e?.code);
+  } finally {
+    me.pending = false; chat.busy = false; chat.ctl = null; renderChat(); saveChat();
+  }
+}
+async function undoNote(i) {
+  const m = chat.msgs[i]; if (!m?.undo || m.undone) return;
+  if (m.undo.type === "hour") await store.remove("hours", m.undo.id);
+  if (m.undo.type === "status") await store.patchJob(m.undo.key, m.undo.prev);
+  m.undone = true; renderChat(); saveChat(); toast("Undone");
+}
+
+function wireV2() {
+  document.querySelectorAll("[data-kyface]").forEach((el) => (el.innerHTML = KY_FACE));
+  // Ky
+  kyEl.addEventListener("click", petKy);
+  kyEl.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); petKy(); } });
+  document.addEventListener("pointermove", (e) => { look(e.clientX, e.clientY); if ($("#kyWrap").classList.contains("sleeping")) wake(); }, { passive: true });
+  ["keydown", "scroll", "pointerdown"].forEach((ev) => document.addEventListener(ev, () => { if ($("#kyWrap").classList.contains("sleeping")) wake(); else { clearTimeout(idleTimer); wake(); } }, { passive: true }));
+  wake(); earTwitches(); fabPeek();
+  // prefs
+  $("#roles").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-role]"); if (!b) return;
+    const on = new Set(state.prefs.roles?.length ? state.prefs.roles : DEFAULT_ROLES);
+    if (on.has(b.dataset.role)) { if (on.size === 1) return toast("Keep at least one job type."); on.delete(b.dataset.role); } else on.add(b.dataset.role);
+    state.prefs.roles = [...on]; renderPrefs(); savePrefsSoon();
+  });
+  $("#sched").addEventListener("click", (e) => { const b = e.target.closest("[data-sched]"); if (!b) return; state.prefs.schedule = b.dataset.sched; renderPrefs(); savePrefsSoon(); });
+  $("#shifts").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-shift]"); if (!b) return;
+    const s = new Set(state.prefs.shifts); s.has(b.dataset.shift) ? s.delete(b.dataset.shift) : s.add(b.dataset.shift);
+    state.prefs.shifts = [...s]; renderPrefs(); savePrefsSoon();
+  });
+  // hours
+  $("#hDate").value = todayISO();
+  $("#hoursForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+      const entry = await addHours({ date: $("#hDate").value, place: $("#hPlace").value, hours: $("#hHours").value, kind: $("#hKind").value, supervisor: $("#hSup").value, contact: $("#hContact").value, notes: $("#hNotes").value });
+      $("#hHours").value = ""; $("#hNotes").value = "";
+      toast(`Logged ${fmtH(entry.hours)} hours. Nice work!`); trick("jump"); heart();
+    } catch (err) { toast(err.message); }
+  });
+  $("#hGoal").addEventListener("change", () => { const v = parseFloat($("#hGoal").value); state.hoursGoal = v > 0 ? Math.round(v) : null; renderHours(); persistSettings(); });
+  $("#hoursList").addEventListener("click", async (e) => {
+    const t = e.target;
+    if (t.matches("[data-hask]")) { hoursConfirm = t.dataset.hask; renderHours(); }
+    else if (t.matches("[data-hkeep]")) { hoursConfirm = null; renderHours(); }
+    else if (t.matches("[data-hdel]")) { const id = t.dataset.hdel; hoursConfirm = null; await store.remove("hours", id); toast("Removed"); }
+    else if (t.matches("[data-hall]")) { hoursAll = !hoursAll; renderHours(); }
+  });
+  $("#hoursCsv").addEventListener("click", () => {
+    if (!state.hours.length) return toast("Log some hours first.");
+    const name = (state.profile?.name || "My").replace(/[^A-Za-z0-9]+/g, "_");
+    save(`${name}_Patient_Care_Hours.csv`, new Blob([hoursCSV()], { type: "text/csv" }));
+  });
+  // chat
+  $("#fab").addEventListener("click", () => openChat());
+  $("#chatClose").addEventListener("click", closeChat);
+  $("#chat").addEventListener("keydown", (e) => { if (e.key === "Escape") closeChat(); });
+  $("#chatStop").addEventListener("click", () => chat.ctl?.abort());
+  $("#chatReset").addEventListener("click", () => { chat.ctl?.abort(); chat.msgs = []; chat.focus = null; chat.focusFresh = false; saveChat(); renderChat(); });
+  $("#chatFocusClear").addEventListener("click", () => { chat.focus = null; chat.focusFresh = false; renderChat(); });
+  $("#chatForm").addEventListener("submit", (e) => { e.preventDefault(); const v = $("#chatIn").value; $("#chatIn").value = ""; $("#chatIn").style.height = ""; sendChat(v); });
+  $("#chatIn").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("#chatForm").requestSubmit(); } });
+  $("#chatIn").addEventListener("input", (e) => { e.target.style.height = "auto"; e.target.style.height = Math.min(140, e.target.scrollHeight) + "px"; });
+  $("#chatChips").addEventListener("click", (e) => { const b = e.target.closest("[data-chip]"); if (b) sendChat(b.textContent); });
+  $("#chatLog").addEventListener("click", (e) => { const b = e.target.closest("[data-undo]"); if (b) undoNote(+b.dataset.undo); });
+}
+
+/* ===================================================================
    Events
    =================================================================== */
 async function persistSettings() {
   const prev = (await store.settings()) || {};
   await store.saveSettings({
     ...prev, zip: state.zip, count: state.count, resumeText: state.resumeText, resumeName: state.resumeName,
-    profile: state.profile, profileHash: state.profileHash, updatedAt: new Date().toISOString(),
+    profile: state.profile, profileHash: state.profileHash, prefs: state.prefs, template: state.template, hoursGoal: state.hoursGoal,
+    updatedAt: new Date().toISOString(),
   });
 }
 function wire() {
@@ -1296,16 +2127,18 @@ function wire() {
     if (!b) return;
     const act = b.dataset.act; const p = state.profile;
     if (act === "preview") openPreview(j);
-    else if (act === "pdf" && j.resume && p) save(fileBase(j, p) + "_Resume.pdf", buildPDF(j.resume, p));
+    else if (act === "pdf" && j.resume && p) save(fileBase(j, p) + "_Resume.pdf", buildPDF(j.resume, p).blob);
     else if (act === "docx" && j.resume && p) save(fileBase(j, p) + "_Resume.docx", buildDOCX(j.resume, p));
     else if (act === "apply") openApply(j);
+    else if (act === "ask") openChat({ job: j });
+    else if (act === "followup") openChat({ job: j, send: `Can you write a short, polite follow-up email for my application to ${j.title} at ${j.company}? I applied on ${fmtDay(j.appliedOn)}.` });
+    else if (act === "practice") openChat({ job: j, send: `Help me practice for my interview for ${j.title} at ${j.company}. Ask me one question at a time and give me friendly feedback on each answer.` });
+    else if (act === "loghours") { $("#hPlace").value = j.company; $("#hoursTitle").scrollIntoView({ behavior: "smooth", block: "start" }); setTimeout(() => $("#hHours").focus(), 400); }
     else if (act === "retry") retryTailor(j, b);
   });
   $("#jobs").addEventListener("change", (e) => {
     const s = e.target.closest("[data-act=status]"); if (!s) return;
-    store.patchJob(s.dataset.key, { status: s.value, seen: true, ...(s.value === "applied" ? { appliedOn: new Date().toISOString().slice(0, 10) } : {}) });
-    if (s.value === "applied") { ky("happy", "Yay!", "Another application sent! That's how you get there. I'll keep looking for more."); }
-    if (s.value === "interview") { ky("happy", "An interview!", "That's huge! Open your resume for this job and check the Tips tab for interview ideas."); }
+    const j = state.jobs.find((x) => x.key === s.dataset.key); if (j) setStatus(j, s.value);
   });
 }
 
@@ -1324,7 +2157,9 @@ async function retryTailor(j, btn) {
    Boot
    =================================================================== */
 async function boot() {
-  wire(); renderSetup(); $("#jobs").innerHTML = emptyJobs();
+  wire(); wireV2(); renderPrefs(); renderHours(); renderSetup(); $("#jobs").innerHTML = emptyJobs();
+  const hr = new Date().getHours(); const part = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
+  ky(null, `${part}! I'm Ky`, null);
   await connect();
   if (!window.claude) {
     $("#envNotice").innerHTML = "<div><b>Open me inside Claude</b>I can only search for jobs and write resumes when this page is open in the Claude app or on claude.ai.</div>";
@@ -1338,12 +2173,18 @@ async function boot() {
     state.zip = s.zip || ""; state.count = s.count || 5; state.resumeText = s.resumeText || ""; state.resumeName = s.resumeName || "";
     state.resumeHash = state.resumeText ? hash(state.resumeText) : ""; state.profile = s.profile || null; state.profileHash = s.profileHash || "";
     state.alerts = s.alerts || null;
+    if (s.prefs) state.prefs = { roles: s.prefs.roles || null, schedule: s.prefs.schedule || "any", shifts: s.prefs.shifts || [] };
+    if (s.template && TPL[s.template]) state.template = s.template;
+    state.hoursGoal = s.hoursGoal || null;
     $("#zip").value = state.zip;
-    if (state.resumeText) ky(null, "Welcome back!", "Your resume and ZIP code are saved. Press Find more jobs whenever you're ready, or check the jobs I found below.");
+    renderPrefs();
+    if (state.resumeText) { const first = state.profile?.name?.split(" ")[0]; ky(null, `${part}${first ? ", " + first : ""}!`, "Your resume and ZIP code are saved. Tap Find more jobs whenever you're ready, check the jobs I found below, or tap Ask Ky if you have a question."); }
   }
   renderSetup(); renderAlerts();
-  store.watchJobs((jobs) => {
-    state.jobs = jobs; renderJobs();
+  store.watch("hours", (hrs) => { state.hours = hrs; renderHours(); });
+  store.watch("jobs", (jobs) => {
+    state.jobs = jobs; renderJobs(); renderHours();
+    if (!$("#chat").hidden && !chat.busy) renderChat();
     const fresh = jobs.filter((j) => !j.seen).length;
     if (fresh && !state.running) ky("happy", "New jobs!", `I found ${fresh} new job${fresh === 1 ? "" : "s"} since you were last here. They're at the top of your list with resumes ready.`);
   });
