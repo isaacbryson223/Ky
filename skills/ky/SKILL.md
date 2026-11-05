@@ -69,7 +69,7 @@ Do these steps without asking her technical questions. Tell her in one friendly 
 
 7. Tell her the one thing she might want later: "Want me to keep watching every morning? Tap **Turn on job alerts** in your helper."
 
-**If the helper was published before (an older Ky):** when you find an existing "Agent Ky" artifact, compare it with the repo's `helper/ky.html`. If the repo version is newer, read the artifact first, then republish the repo file to that same artifact URL with the capabilities above, so her saved jobs and hours stay. Tell her in one line: "I gave your helper an upgrade! 🐿️"
+**If the helper was published before (an older Ky):** when you find an existing "Agent Ky" artifact, compare the `<meta name="ky-version">` in the artifact with the one in the repo's `helper/ky.html`. If the repo version is newer (or the artifact has none), read the artifact first, then republish the repo file to that same artifact URL with the capabilities above, so her saved jobs and hours stay. Tell her in one line: "I gave your helper an upgrade! 🐿️"
 
 ## 2. When she comes back ("Hi Ky", "open my job helper")
 

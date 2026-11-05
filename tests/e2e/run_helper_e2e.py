@@ -131,7 +131,7 @@ STUB = r"""
 """
 
 
-async def main(libs: Path, shots: Path | None) -> int:
+async def main(libs: Path, shots: Path | None, chrome: str = "/usr/bin/google-chrome") -> int:
     from playwright.async_api import async_playwright
 
     body = (ROOT / "helper" / "ky.html").read_text()
@@ -145,7 +145,7 @@ async def main(libs: Path, shots: Path | None) -> int:
     ok = lambda cond, msg: (print(("PASS " if cond else "FAIL ") + msg), None if cond else problems.append(msg))
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(executable_path="/usr/bin/google-chrome")
+        browser = await p.chromium.launch(executable_path=chrome)
         page = await browser.new_page(viewport={"width": 1000, "height": 1400})
         errors: list[str] = []
         page.on("pageerror", lambda e: errors.append(str(e)))
@@ -279,7 +279,8 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--libs", required=True, type=Path)
     ap.add_argument("--shots", type=Path)
+    ap.add_argument("--chrome", default="/usr/bin/google-chrome")
     a = ap.parse_args()
     if a.shots:
         a.shots.mkdir(parents=True, exist_ok=True)
-    sys.exit(asyncio.run(main(a.libs, a.shots)))
+    sys.exit(asyncio.run(main(a.libs, a.shots, a.chrome)))

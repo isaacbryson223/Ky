@@ -22,3 +22,21 @@ jobs:
           open("/tmp/ky.js", "w").write(re.findall(r"<script>(.*?)</script>", s, re.S)[-1])
           EOF
           node --check /tmp/ky.js
+
+  helper-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install playwright pyyaml
+      - name: Fetch the helper's browser libraries
+        run: |
+          mkdir -p /tmp/libs && cd /tmp/libs
+          for p in jspdf@2.5.1 pdfjs-dist@3.11.174 mammoth@1.6.0 docx@8.5.0; do
+            npm pack "$p" -q
+          done
+          for f in *.tgz; do d="${f%.tgz}"; mkdir -p "$d" && tar xzf "$f" -C "$d"; done
+      - name: Run the helper end to end
+        run: python tests/e2e/run_helper_e2e.py --libs /tmp/libs --chrome "$(which google-chrome)"
