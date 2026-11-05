@@ -75,7 +75,7 @@ def cert_requirements(description: str) -> dict[str, str]:
     sentences = re.split(r"(?<=[.;!?\n])\s+|\n", description or "")
     for code, aliases in CERT_ALIASES.items():
         for s in sentences:
-            if not find_terms(s, aliases):
+            if not find_terms(s, aliases, whole=True):
                 continue
             # "CPR" alone inside a long sentence is usually BLS-ish; fine.
             level = "preferred" if has_any(s, PREFERRED_HINTS) else ("required" if has_any(s, REQUIRED_HINTS) else "preferred")

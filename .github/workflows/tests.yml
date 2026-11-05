@@ -38,5 +38,7 @@ jobs:
             npm pack "$p" -q
           done
           for f in *.tgz; do d="${f%.tgz}"; mkdir -p "$d" && tar xzf "$f" -C "$d"; done
-      - name: Run the helper end to end
+      - name: Run the helper end to end (browser storage)
         run: python tests/e2e/run_helper_e2e.py --libs /tmp/libs --chrome "$(which google-chrome)"
+      - name: Run the helper end to end (database)
+        run: python tests/e2e/run_helper_e2e.py --libs /tmp/libs --chrome "$(which google-chrome)" --db

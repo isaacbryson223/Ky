@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.4 (fixes from an independent code review)
+- Every resume is fact-checked before it's kept, including the headline and education details; odd-shaped replies from Claude are cleaned up instead of breaking buttons.
+- A failed save no longer makes her job list look empty; Ky retries once and tells her if it still can't save.
+- Settings saves wait until her saved settings have loaded and merge onto the latest copy, so a new visit can't wipe her resume or turn off her alerts.
+- "Start" waits until her saved jobs have loaded, and a new search never overwrites a job she already marked applied.
+- One failed search no longer stops the whole search; Ky stops "working" when there's an error.
+- Job links must be real web addresses; job details only trust the posting's header.
+- Certifications match whole words ("PALS" isn't "palsy", "CNA" isn't "CNAs").
+- Files are built inside the download step, so a library hiccup shows a message instead of doing nothing. Libraries load without blocking the page.
+- Friendlier upload errors (unsupported files, photo formats); keyboard-reachable file picker; no iPhone zoom on small fields; dialogs return focus; "Not for me" has Undo; the alerts card updates live.
+- Browser test now runs with a stand-in database and malformed Claude replies too.
+
 ## v2.3
 - Ky puts on a little nurse cap once she gets a job.
 - Progress strip on "Your jobs": jobs found, applied, interviews, hours logged.

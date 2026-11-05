@@ -69,7 +69,7 @@ PROFILE = {
 }
 
 TAILORED = {
-    "target_title": "Patient Care Technician Candidate | BLS Certified",
+    "target_title": "Certified Nursing Assistant | BLS Certified",  # she has no CNA: the headline must be dropped
     "summary": "Pre-nursing student with hands-on home care experience assisting clients with activities of daily living and vital signs.",
     "certifications": ["BLS for Healthcare Providers", "CNA"],  # CNA is invented: the fact check must remove it
     "experience": [
@@ -82,9 +82,9 @@ TAILORED = {
          "bullets": ["Delivered fast, friendly customer service for 150+ customers per shift"]},
     ],
     "education": [{"school": "Riverside City College", "program": "Pre-Nursing", "status": "in progress", "end": "", "gpa": "3.6", "details": ""}],
-    "skills": {"clinical": ["Vital signs", "Activities of daily living (ADLs)", "Patient transfers"], "technical": [], "languages": ["English", "Spanish"]},
+    "skills": {"clinical": ["Vital signs", "Activities of daily living (ADLs)", "Patient transfers"], "technical": [], "languages": "English, Spanish"},  # a string, not a list
     "volunteer": [],
-    "cover_letter": ["P1 about the hospital.", "P2 with two examples.", "P3 about nursing."],
+    "cover_letter": "P1 about the hospital.\n\nP2 with two examples.\n\nP3 about nursing.",  # one string, not a list
     "keywords_used": ["vital signs"], "questions_for_candidate": ["About how many hours a week do you work?"],
     "why_this_job": "Great hands-on role for nursing school.", "interview_tips": ["Talk about safe transfers."],
 }
@@ -92,6 +92,34 @@ TAILORED = {
 STUB = r"""
 (() => {
   const FIX = %(fix)s;
+  // A small stand-in for the artifact database (Firestore-like), used with --db.
+  function makeDb() {
+    const docs = new Map(), subs = [];
+    const clone = (x) => JSON.parse(JSON.stringify(x));
+    const collOf = (path) => path.split("/").slice(0, -1).join("/");
+    const notify = () => setTimeout(() => subs.slice().forEach((s) => s.fire()), 5);
+    const snapDoc = (path) => { const d = docs.get(path); return { id: path.split("/").pop(), exists: !!d, data: () => (d ? clone(d) : undefined), metadata: { fromCache: false, hasPendingWrites: false } }; };
+    const docRef = (path) => ({
+      id: path.split("/").pop(), path,
+      async get() { return snapDoc(path); },
+      async set(data) { docs.set(path, clone(data)); notify(); },
+      async update(data) { if (!docs.has(path)) throw { code: "invalid_argument" }; docs.set(path, { ...docs.get(path), ...clone(data) }); notify(); },
+      async delete() { docs.delete(path); notify(); },
+      onSnapshot(next) { const s = { fire: () => next(snapDoc(path)) }; subs.push(s); setTimeout(s.fire, 30); return () => subs.splice(subs.indexOf(s), 1); },
+    });
+    const collRef = (path) => ({
+      path, doc: (id) => docRef(path + "/" + id),
+      onSnapshot(next) {
+        const s = { fire: () => { const ds = [...docs.keys()].filter((k) => collOf(k) === path).sort().map(snapDoc); next({ docs: ds, size: ds.length, empty: !ds.length, docChanges: () => [], metadata: { fromCache: false, hasPendingWrites: false } }); } };
+        subs.push(s); setTimeout(s.fire, 300); return () => subs.splice(subs.indexOf(s), 1);
+      },
+    });
+    window.__db = docs; window.__dbSet = (path, data) => { docs.set(path, clone(data)); notify(); };
+    return { doc: docRef, collection: collRef };
+  }
+  const db = %(usedb)s ? makeDb() : null;
+  window.__jobs = () => (window.__db ? [...window.__db].filter(([k]) => k.startsWith("jobs/")).map(([k, v]) => ({ ...v, key: k.slice(5) })) : JSON.parse(localStorage.getItem("ky.jobs")));
+  window.__settings = () => (window.__db ? window.__db.get("settings/main") : JSON.parse(localStorage.getItem("ky.settings")));
   window.__saved = []; window.__sampleCalls = 0;
   const mcp = {
     async callTool(server, tool, input) {
@@ -126,12 +154,13 @@ STUB = r"""
   };
   sample.limits = async () => ({ maxPromptBytes: 262144, tools: { maxCount: 8 } });
   const downloads = { async save({ filename, data }) { const size = data.size ?? data.length ?? data.byteLength; window.__saved.push({ filename, size, type: data.type || "" }); return { status: "saved" }; } };
-  window.claude = { use: async (n) => ({ mcp, sample, downloads })[n] ?? null };
+  window.claude = { use: async (n) => ({ mcp, sample, downloads, db })[n] ?? null };
 })();
 """
 
 
-async def main(libs: Path, shots: Path | None, chrome: str = "/usr/bin/google-chrome") -> int:
+async def main(libs: Path, shots: Path | None, chrome: str = "/usr/bin/google-chrome", usedb: bool = False) -> int:
+    print(f"--- running with {'the stand-in database' if usedb else 'browser storage (no database)'} ---")
     from playwright.async_api import async_playwright
 
     body = (ROOT / "helper" / "ky.html").read_text()
@@ -156,7 +185,7 @@ async def main(libs: Path, shots: Path | None, chrome: str = "/usr/bin/google-ch
         for url, rel in CDN.items():
             await page.route(url, serve(rel))
         await page.route("https://fonts.googleapis.com/**", lambda route: route.fulfill(body="", content_type="text/css"))
-        await page.add_init_script(STUB % {"fix": json.dumps(fix)})
+        await page.add_init_script(STUB % {"fix": json.dumps(fix), "usedb": "true" if usedb else "false"})
         await page.route("http://ky.test/", lambda route: route.fulfill(body=html, content_type="text/html"))
         await page.goto("http://ky.test/")
         await page.wait_for_timeout(800)
@@ -173,8 +202,13 @@ async def main(libs: Path, shots: Path | None, chrome: str = "/usr/bin/google-ch
         ok(1 <= n <= 2, f"search produced {n} job card(s), asked for 2")
         titles = await page.locator(".job-title").all_inner_texts()
         ok(not any("Instructor" in t or "Registered Nurse" in t for t in titles), f"non-entry jobs filtered out: {titles}")
-        stored = await page.evaluate("JSON.parse(localStorage.getItem('ky.jobs'))")
+        await page.wait_for_timeout(400)
+        stored = sorted(await page.evaluate("window.__jobs()"), key=lambda j: j["title"])
+        ok(len(stored) == n, f"{n} job(s) saved")
         r0 = stored[0]["resume"]
+        ok(r0["target_title"] == "", "fact check dropped the made-up CNA headline")
+        ok(r0["skills"]["languages"] == ["English", "Spanish"], "odd-shaped skills from Claude are cleaned up")
+        ok(len(r0["cover_letter"]) == 3, "cover letter given as one block is split into paragraphs")
         ok("CNA" not in r0["certifications"], "fact check removed the invented CNA certification")
         ok(all("Epic" not in b for b in r0["experience"][0]["bullets"]), "fact check removed the invented Epic bullet")
         ok(len(stored[0]["removedFacts"]) >= 2, "removed facts are recorded for her")
@@ -199,7 +233,8 @@ async def main(libs: Path, shots: Path | None, chrome: str = "/usr/bin/google-ch
             await page.fill("[data-qa] >> nth=0", "About 20 hours a week")
             await page.click("[data-saveqa]")
             await page.wait_for_function("document.querySelector('#qaStatus').textContent.length > 0 && !document.querySelector('#qaStatus').textContent.includes('Updating')", timeout=10000)
-            facts = await page.evaluate("JSON.parse(localStorage.getItem('ky.settings')).profile.extra_facts")
+            await page.wait_for_timeout(400)
+            facts = (await page.evaluate("window.__settings()"))["profile"]["extra_facts"]
             ok(bool(facts) and facts[0]["answer"] == "About 20 hours a week", "her answers are saved as her own facts")
             ok("About 20 hours a week" in await page.evaluate("window.__lastRevise"), "her answers are sent with the revision")
         await page.click('[data-tab="r"]')
@@ -214,14 +249,6 @@ async def main(libs: Path, shots: Path | None, chrome: str = "/usr/bin/google-ch
         ok(any(f.endswith("_Resume.pdf") for f in names) and any(f.endswith("_Resume.docx") for f in names) and any(f.endswith("Cover_Letter.docx") for f in names) and any(f.endswith("Cover_Letter.pdf") for f in names), f"resume and cover letter files saved: {names}")
         ok(all(s["size"] and s["size"] > 1500 for s in saved), "saved files are not empty")
         await page.click(".dialog [data-close]")
-
-        # 3. every design renders a one-page PDF with real text
-        pdf_info = await page.evaluate("""() => {
-          const s = JSON.parse(localStorage.getItem('ky.jobs'))[0]; const p = JSON.parse(localStorage.getItem('ky.settings')).profile;
-          return ['clean','modern','classic'].map(t => { const r = buildPDFProbe(s.resume, p, t); return r; });
-        }""".replace("buildPDFProbe", "window.__kyBuildPDF")) if await page.evaluate("typeof window.__kyBuildPDF === 'function'") else None
-        if pdf_info:
-            ok(all(x["pages"] == 1 for x in pdf_info), f"all three designs fit one page: {pdf_info}")
 
         # 4. status + chat with a tool call
         await page.select_option(".job select.status >> nth=0", "hired")
@@ -253,7 +280,16 @@ async def main(libs: Path, shots: Path | None, chrome: str = "/usr/bin/google-ch
         await page.click("#hoursCsv"); await page.wait_for_timeout(300)
         ok(any(s["filename"].endswith("_Patient_Care_Hours.csv") for s in await page.evaluate("window.__saved")), "hours CSV saved")
 
-        # 6. Ky moves don't crash
+        # 6. alerts turned on from the Claude chat show up on the page (database only)
+        if usedb:
+            await page.evaluate("(() => { const st = window.__settings(); st.alerts = { on: true, zip: '92501' }; window.__dbSet('settings/main', st); })()")
+            await page.wait_for_timeout(300)
+            ok("Alerts are on" in await page.inner_text("#alertsText"), "alerts card updates when alerts are turned on elsewhere")
+            # a settings save from the page keeps those alerts
+            await page.click("#plus"); await page.wait_for_timeout(1200)
+            ok((await page.evaluate("window.__settings()")).get("alerts", {}).get("on") is True, "saving settings keeps alerts that were turned on elsewhere")
+
+        # 7. Ky moves don't crash
         await page.click("#ky"); await page.mouse.move(900, 50); await page.wait_for_timeout(400)
         ok(await page.locator("#kyPupils").get_attribute("transform") is not None, "Ky's eyes follow the pointer")
 
@@ -280,7 +316,8 @@ if __name__ == "__main__":
     ap.add_argument("--libs", required=True, type=Path)
     ap.add_argument("--shots", type=Path)
     ap.add_argument("--chrome", default="/usr/bin/google-chrome")
+    ap.add_argument("--db", action="store_true", help="use the stand-in database instead of browser storage")
     a = ap.parse_args()
     if a.shots:
         a.shots.mkdir(parents=True, exist_ok=True)
-    sys.exit(asyncio.run(main(a.libs, a.shots, a.chrome)))
+    sys.exit(asyncio.run(main(a.libs, a.shots, a.chrome, a.db)))

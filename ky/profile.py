@@ -103,7 +103,7 @@ class Profile:
                 continue
             text = f"{c.get('name', '')} {c.get('full_name', '')}"
             for code, aliases in CERT_ALIASES.items():
-                if code.lower() == str(c.get("name", "")).strip().lower() or find_terms(text, aliases):
+                if code.lower() == str(c.get("name", "")).strip().lower() or find_terms(text, aliases, whole=True):
                     codes.add(code)
         return codes
 

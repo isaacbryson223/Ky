@@ -1,14 +1,14 @@
 <title>Agent Ky</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="ky-version" content="2.3">
+<meta name="ky-version" content="2.4">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap">
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js" defer></script>
 <style>
 /* Layout: one friendly column — Ky at the top, three setup steps, then the jobs Ky found. Scrubs-teal for patient care, squirrel cinnamon for Ky and actions. */
 :root {
@@ -55,6 +55,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; }
 .wrap { max-width: 760px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 56px; display: flex; flex-direction: column; gap: 20px; }
 h1, h2, h3 { font-family: var(--display); font-weight: 600; line-height: 1.15; margin: 0; text-wrap: balance; }
@@ -108,6 +109,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .step-body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .step-title { font-weight: 800; }
 .drop { display: block; border: 2px dashed var(--line); border-radius: 12px; padding: 18px; text-align: center; background: var(--surface-2); cursor: pointer; transition: border-color .15s, background .15s; }
+.drop:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
 .drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
 .drop strong { color: var(--accent); }
 .filechip { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--teal-soft); color: var(--ink); flex-wrap: wrap; }
@@ -180,7 +182,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
 .why { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; font-size: .95rem; }
 .why b { font-family: var(--display); font-weight: 600; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.status { border: 1.5px solid var(--line); border-radius: 999px; padding: 7px 12px; background: var(--surface); font-weight: 700; font-size: .9rem; }
+.status { border: 1.5px solid var(--line); border-radius: 999px; padding: 7px 12px; background: var(--surface); font-weight: 700; font-size: 16px; }
 @media (max-width: 520px) { .meters { grid-template-columns: 1fr; } .job-top { flex-direction: column; } }
 
 .empty { text-align: center; padding: 18px; color: var(--muted); }
@@ -327,7 +329,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
 .reasons { font-size: .85rem; color: var(--muted); }
 .revise { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: var(--surface-2); }
 .revise-row { display: flex; gap: 8px; }
-.revise-row input, .qa input { flex: 1; min-width: 0; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--surface); }
+.revise-row input, .qa input { flex: 1; min-width: 0; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 16px; }
 .qa { display: flex; flex-direction: column; gap: 4px; font-size: .92rem; }
 .copy-msg { align-self: flex-start; margin-top: -6px; border: 0; background: none; color: var(--teal); font-weight: 700; font-size: .8rem; cursor: pointer; padding: 2px 4px; }
 .kywrap { position: relative; width: 150px; height: 150px; }
@@ -459,7 +461,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
               <strong>Tap to choose your resume</strong> or drop it here
               <div class="muted small">PDF, Word, text, or a photo of a paper resume</div>
             </label>
-            <input type="file" id="resumeFile" accept=".pdf,.docx,.txt,.md,image/*" hidden>
+            <input type="file" id="resumeFile" accept=".pdf,.docx,.txt,.md,image/jpeg,image/png,image/webp,image/gif" class="sr-only">
             <p class="small muted" style="margin-top:8px">No file? <button class="linkbtn" id="pasteToggle" type="button">Paste it instead</button></p>
             <div id="pasteBox" hidden style="margin-top:8px">
               <label for="resumePaste" class="small muted">Paste your resume text</label>
@@ -577,7 +579,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
     </div>
   </section>
 
-  <p class="footer">Ky only uses facts from your resume and never applies, signs in, or sends anything without you. · Ky v2.3</p>
+  <p class="footer">Ky only uses facts from your resume and never applies, signs in, or sends anything without you. · Ky v2.4</p>
 </div>
 
 <button class="fab" id="fab" type="button" aria-label="Ask Ky a question"><span class="face" data-kyface></span><span>Ask Ky</span></button>
@@ -601,7 +603,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
 </aside>
 
 <div id="modalRoot"></div>
-<div id="toastRoot"></div>
+<div id="toastRoot" role="status" aria-live="polite"></div>
 
 <script>
 (() => {
@@ -611,14 +613,62 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
    Helpers
    =================================================================== */
 const $ = (s, el = document) => el.querySelector(s);
-const safeUrl = (u) => (/^https?:\/\//i.test(String(u || "").trim()) ? String(u).trim() : "");
+const safeUrl = (u) => { try { const x = new URL(String(u || "").trim()); return /^https?:$/.test(x.protocol) ? x.href : ""; } catch { return ""; } };
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const norm = (s) => String(s ?? "").toLowerCase().replace(/\(.*?\)/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 function hash(s) { let h = 5381; for (const c of s) h = ((h << 5) + h + c.charCodeAt(0)) >>> 0; return h.toString(36); }
 function lsGet(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
-function toast(msg) { const t = document.createElement("div"); t.className = "toast"; t.textContent = msg; $("#toastRoot").replaceChildren(t); setTimeout(() => t.remove(), 3200); }
+function toast(msg, action) {
+  const t = document.createElement("div"); t.className = "toast"; t.textContent = msg;
+  if (action) { const b = document.createElement("button"); b.type = "button"; b.className = "linkbtn"; b.style.cssText = "color:inherit;margin-left:10px"; b.textContent = action.label; b.onclick = () => { t.remove(); action.run(); }; t.append(b); }
+  $("#toastRoot").replaceChildren(t); setTimeout(() => t.remove(), action ? 6500 : 3200);
+}
+// Model output can come back in odd shapes; these make it safe to render.
+const str = (v) => (typeof v === "string" ? v : typeof v === "number" ? String(v) : "");
+const list = (v, sep) => (Array.isArray(v) ? v : typeof v === "string" ? (sep ? v.split(sep) : [v]) : [])
+  .map((x) => (typeof x === "string" ? x.trim() : typeof x === "number" ? String(x) : "")).filter(Boolean);
+const objs = (v) => (Array.isArray(v) ? v : v && typeof v === "object" ? [v] : []).filter((x) => x && typeof x === "object" && !Array.isArray(x));
+function shapeResume(r) {
+  if (!r || typeof r !== "object" || Array.isArray(r)) throw new Error("bad_shape");
+  r.target_title = str(r.target_title); r.summary = str(r.summary); r.why_this_job = str(r.why_this_job);
+  r.certifications = list(r.certifications);
+  r.experience = objs(r.experience).map((e) => ({ ...e, title: str(e.title), employer: str(e.employer), location: str(e.location), start: str(e.start), end: str(e.end), bullets: list(e.bullets) }));
+  r.volunteer = objs(r.volunteer).map((v) => ({ ...v, role: str(v.role), org: str(v.org), start: str(v.start), end: str(v.end), hours: str(v.hours), bullets: list(v.bullets) }));
+  r.education = objs(r.education).map((e) => ({ ...e, school: str(e.school), program: str(e.program), status: str(e.status), end: str(e.end), gpa: str(e.gpa), details: str(e.details) }));
+  const sk = r.skills && typeof r.skills === "object" && !Array.isArray(r.skills) ? r.skills : {};
+  r.skills = { clinical: list(sk.clinical, /\s*[,;]\s*/), technical: list(sk.technical, /\s*[,;]\s*/), languages: list(sk.languages, /\s*[,;]\s*/) };
+  r.cover_letter = list(r.cover_letter, /\n\s*\n/);
+  r.questions_for_candidate = list(r.questions_for_candidate); r.interview_tips = list(r.interview_tips); r.keywords_used = list(r.keywords_used);
+  return r;
+}
+function shapeProfile(p) {
+  if (!p || typeof p !== "object" || Array.isArray(p) || !str(p.name).trim()) return null;
+  p.name = str(p.name).trim(); p.location = str(p.location); p.goal = str(p.goal);
+  p.contact = p.contact && typeof p.contact === "object" ? { email: str(p.contact.email), phone: str(p.contact.phone) } : { email: "", phone: "" };
+  p.certifications = objs(p.certifications).map((c) => ({ ...c, name: str(c.name), full_name: str(c.full_name), issuer: str(c.issuer), expires: str(c.expires) })).filter((c) => c.name);
+  p.experience = objs(p.experience).map((e) => ({ ...e, title: str(e.title), employer: str(e.employer), location: str(e.location), start: str(e.start), end: str(e.end), patient_care: !!e.patient_care, duties: list(e.duties), numbers: list(e.numbers) })).filter((e) => e.title || e.employer);
+  p.education = objs(p.education).map((e) => ({ ...e, school: str(e.school), program: str(e.program), status: str(e.status), end: str(e.end), gpa: str(e.gpa), prerequisites_done: list(e.prerequisites_done) })).filter((e) => e.school);
+  p.volunteer = objs(p.volunteer).map((v) => ({ ...v, role: str(v.role), org: str(v.org), start: str(v.start), end: str(v.end), hours: str(v.hours), duties: list(v.duties) })).filter((v) => v.org);
+  const sk = p.skills && typeof p.skills === "object" && !Array.isArray(p.skills) ? p.skills : {};
+  p.skills = { clinical: list(sk.clinical), technical: list(sk.technical), soft: list(sk.soft), languages: list(sk.languages) };
+  p.extra_facts = objs(p.extra_facts).filter((f) => str(f.answer));
+  return p;
+}
+function friendly(e, fallback) {
+  if (e instanceof Error && e.message && e.message !== "bad_shape") return e.message;
+  return ({
+    not_granted: "I need your OK to use Claude. Try again and tap Allow when Claude asks.",
+    rate_limited: "You've hit your Claude usage limit for now. Try again later.",
+    image_rejected: "I couldn't open that photo. Try a JPG or PNG screenshot.",
+    images_unavailable: "I can't read photos here. Try a PDF or Word file, or paste the text.",
+    invalid_json: "I got a jumbled answer. Please try again.",
+    prompt_too_large: "That was too much to read at once. Try a shorter file.",
+    session_expired: "Please sign in to Claude again, then reopen this page.",
+    sampling_disabled: "Claude isn't available on this account right now.",
+  })[e?.code] || fallback;
+}
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 function fmtDate(s) {
   s = String(s ?? "").trim(); if (!s) return "";
@@ -666,23 +716,29 @@ const store = {
     }
     return lsGet("ky.settings");
   },
-  async saveSettings(s) {
-    lsSet("ky.settings", s);
-    if (cap.db) { try { await cap.db.doc("settings/main").set(s); } catch (e) { console.warn("settings save", e); } }
+  async _db(op) {
+    for (let i = 0; ; i++) {
+      try { await op(); return true; } catch (e) {
+        if (e?.code === "unavailable" && !i) { await sleep(400 + Math.random() * 800); continue; }
+        console.warn("save", e);
+        toast(e?.code === "quota_exceeded" ? "Ky's storage is full. Mark old jobs 'Not for me' to make room." : "I couldn't save that. Check your connection and try again.");
+        return false;
+      }
+    }
   },
   _ls: { jobs: "ky.jobs", hours: "ky.hours" },
   _idk: { jobs: "key", hours: "id" },
   _cb: {},
   // Live list of a collection; falls back to this browser's copy without the database.
-  watch(coll, cb) {
+  watch(coll, cb, onSlow) {
     this._cb[coll] = cb;
     const key = this._ls[coll], idk = this._idk[coll];
     if (cap.db) {
       let got = false;
-      const timer = setTimeout(() => { if (!got) cb(lsGet(key) || []); }, 10000);
+      const timer = setTimeout(() => { if (!got) onSlow?.(); }, 10000);
       return cap.db.collection(coll).onSnapshot(
         (snap) => { got = true; clearTimeout(timer); cb(snap.docs.map((d) => ({ ...d.data(), [idk]: d.id }))); },
-        () => { clearTimeout(timer); cb(lsGet(key) || []); }
+        () => { clearTimeout(timer); if (!got) onSlow?.(); }
       );
     }
     cb(lsGet(key) || []);
@@ -690,16 +746,16 @@ const store = {
   },
   _local(coll, fn) { const k = this._ls[coll]; const all = fn(lsGet(k) || []); lsSet(k, all); this._cb[coll]?.(all); },
   async put(coll, id, doc) {
-    if (cap.db) { try { await cap.db.doc(`${coll}/${id}`).set(doc); return; } catch (e) { console.warn("save", coll, e); } }
-    const idk = this._idk[coll]; this._local(coll, (all) => [...all.filter((x) => x[idk] !== id), { ...doc, [idk]: id }]);
+    if (cap.db) return this._db(() => cap.db.doc(`${coll}/${id}`).set(doc));
+    const idk = this._idk[coll]; this._local(coll, (all) => [...all.filter((x) => x[idk] !== id), { ...doc, [idk]: id }]); return true;
   },
   async patch(coll, id, patch) {
-    if (cap.db) { try { await cap.db.doc(`${coll}/${id}`).update(patch); return; } catch (e) { console.warn("patch", coll, e); } }
-    const idk = this._idk[coll]; this._local(coll, (all) => all.map((x) => (x[idk] === id ? { ...x, ...patch } : x)));
+    if (cap.db) return this._db(() => cap.db.doc(`${coll}/${id}`).update(patch));
+    const idk = this._idk[coll]; this._local(coll, (all) => all.map((x) => (x[idk] === id ? { ...x, ...patch } : x))); return true;
   },
   async remove(coll, id) {
-    if (cap.db) { try { await cap.db.doc(`${coll}/${id}`).delete(); return; } catch (e) { console.warn("delete", coll, e); } }
-    const idk = this._idk[coll]; this._local(coll, (all) => all.filter((x) => x[idk] !== id));
+    if (cap.db) return this._db(() => cap.db.doc(`${coll}/${id}`).delete());
+    const idk = this._idk[coll]; this._local(coll, (all) => all.filter((x) => x[idk] !== id)); return true;
   },
   saveJob(job) { return this.put("jobs", job.key, job); },
   patchJob(key, patch) { return this.patch("jobs", key, patch); },
@@ -712,6 +768,7 @@ const state = {
   resumeText: "", resumeName: "", resumeHash: "", profile: null, profileHash: "",
   zip: "", count: 5, jobs: [], filter: "all", running: false, abort: null, alerts: null,
   prefs: { roles: null, schedule: "any", shifts: [] }, template: "clean", hours: [], hoursGoal: null,
+  jobsLoaded: false, settingsLoaded: false,
 };
 const STATUS_LABEL = { new: "Not applied yet", applied: "I applied", interview: "Got an interview", hired: "I got the job!", skip: "Not for me" };
 
@@ -749,6 +806,9 @@ async function readFile(file) {
   if (/heic|heif/i.test(file.type) || /\.hei[cf]$/.test(name)) throw new Error("That photo is in iPhone's HEIC format, which I can't read. Take a screenshot of it instead, or use a PDF or Word file.");
   if (file.type.startsWith("image/")) {
     if (!cap.sample) throw new Error("I can only read photos inside Claude. Try a PDF or Word file, or paste the text.");
+    if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) throw new Error("I can read JPG, PNG, WebP or GIF photos. Try a screenshot of your resume instead.");
+    const lim = await cap.sample.limits().catch(() => null);
+    if (!lim?.images) throw new Error("I can't read photos here. Try a PDF or Word file, or paste the text.");
     ky("working", "Reading your photo…", "Give me a moment to read your resume photo.");
     const { text } = await cap.sample(
       "This image is a photo or screenshot of a resume. Transcribe ALL of its text exactly as written, keeping the line breaks and section order. Do not add, fix, or summarize anything. Reply with only the transcribed text.",
@@ -756,6 +816,7 @@ async function readFile(file) {
     );
     return text;
   }
+  if (!/\.(txt|md|text)$/.test(name) && !file.type.startsWith("text/")) throw new Error("I can read PDF, Word (.docx), text files and photos. Save your resume as a PDF, or paste the text.");
   return await file.text();
 }
 
@@ -765,11 +826,10 @@ async function useResume(text, name) {
   state.resumeText = text.slice(0, 20000);
   state.resumeName = name;
   state.resumeHash = hash(state.resumeText);
-  if (state.profileHash !== state.resumeHash) state.profile = null;
   renderSetup();
   ky(null, "Got your resume!", "Nice! Now your ZIP code, and how many jobs you'd like me to find.");
   await persistSettings();
-  if (cap.sample && !state.profile) learnProfile().catch(() => {});
+  if (cap.sample && state.profileHash !== state.resumeHash) learnProfile().catch((e) => showError(friendly(e, "I had trouble reading that resume. Try another file, or paste the text.")));
 }
 
 const PROFILE_PROMPT = (resume) => `Read this resume and turn it into JSON. Copy facts EXACTLY as written: names, employers, job titles, schools, dates, numbers, certifications. Do NOT add, guess, or improve anything. Leave a field empty ("" or []) if the resume doesn't say it.
@@ -791,11 +851,12 @@ ${resume}
 
 async function learnProfile() {
   if (state.profile && state.profileHash === state.resumeHash) return state.profile;
-  const p = await cap.sample.json(PROFILE_PROMPT(state.resumeText), { cache: { gcTime: 864e5 } });
-  if (!p || typeof p !== "object" || !p.name) throw new Error("I couldn't read your name and experience from that resume.");
-  p.experience = Array.isArray(p.experience) ? p.experience : [];
-  p.certifications = Array.isArray(p.certifications) ? p.certifications.filter((c) => c && c.name) : [];
-  state.profile = p; state.profileHash = state.resumeHash;
+  const forHash = state.resumeHash;
+  const p = shapeProfile(await cap.sample.json(PROFILE_PROMPT(state.resumeText), { cache: { gcTime: 864e5 } }));
+  if (!p) throw new Error("I couldn't read your name and experience from that resume. Try another file, or paste the text.");
+  if (forHash !== state.resumeHash) return state.profile;  // she changed resumes meanwhile
+  p.extra_facts = state.profile?.extra_facts || [];
+  state.profile = p; state.profileHash = forHash;
   renderLearned();
   await persistSettings();
   return p;
@@ -873,6 +934,8 @@ const REQ = ["required", "must have", "must possess", "must hold", "current", "v
 const PREF = ["preferred", "a plus", "desired", "nice to have", "willing to obtain", "within 30 days", "within 60 days", "within 90 days", "will train", "we will certify"];
 function hits(text, list) { const t = String(text || "").toLowerCase(); return list.filter((p) => new RegExp("(?<![a-z0-9])" + p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).test(t)); }
 const any = (t, l) => hits(t, l).length > 0;
+// certifications must match whole words ("PALS" isn't "palsy", "CNA" isn't "CNAs")
+const anyCert = (text, list) => { const t = String(text || "").toLowerCase(); return list.some((p) => new RegExp("(?<![a-z0-9])" + p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![a-z])").test(t)); };
 
 function classify(title) {
   if (NOT_ENTRY.test(title)) return ["", ""];
@@ -883,7 +946,7 @@ function classify(title) {
 function certReqs(desc) {
   const out = {}; const sentences = String(desc || "").split(/(?<=[.;!?])\s+|\n/);
   for (const [code, aliases] of Object.entries(CERTS)) for (const s of sentences) {
-    if (!any(s, aliases)) continue;
+    if (!anyCert(s, aliases)) continue;
     const level = any(s, PREF) ? "preferred" : any(s, REQ) ? "required" : "preferred";
     if (out[code] !== "required") out[code] = level;
   }
@@ -895,7 +958,7 @@ function herCerts(p) {
     const exp = String(c.expires || ""); const m = exp.match(/^(\d{4})-(\d{1,2})/);
     if (m && new Date(+m[1], +m[2], 0) < now) continue;
     const txt = `${c.name} ${c.full_name || ""}`;
-    for (const [code, aliases] of Object.entries(CERTS)) if (code.toLowerCase() === String(c.name).trim().toLowerCase() || any(txt, aliases)) have.add(code);
+    for (const [code, aliases] of Object.entries(CERTS)) if (code.toLowerCase() === String(c.name).trim().toLowerCase() || anyCert(txt, aliases)) have.add(code);
   }
   return have;
 }
@@ -942,7 +1005,7 @@ function score(j, p) {
 }
 const serious = (s) => s.flags.filter((f) => f !== "Old posting").length > 0;
 const clinWord = (v) => (v >= 80 ? "Lots" : v >= 60 ? "Good" : v >= 40 ? "Some" : "A little");
-const fitWord = (s) => (s.missing.length ? "Missing a requirement" : s.fit >= 75 ? "Great fit" : s.fit >= 55 ? "Good fit" : "A stretch");
+const fitWord = (s) => ((s.missing || []).length ? "Missing a requirement" : s.fit >= 75 ? "Great fit" : s.fit >= 55 ? "Good fit" : "A stretch");
 
 /* ===================================================================
    Indeed (her own connector)
@@ -966,15 +1029,16 @@ const SHIFT_WORDS = { days: ["day shift", "days", "7a-7p", "7am-7pm", "7a-3p"], 
 const SNIFF_LINES = ["Sniff, sniff…", "Checking hospitals…", "Peeking at nursing homes…", "Looking under every leaf…", "Asking around the clinics…", "Almost there…"];
 // Run fn over items, `limit` at a time; stops starting new ones after an error or Stop.
 async function runPool(items, limit, fn, signal) {
-  let next = 0, failed = false;
+  let next = 0, err = null;
   const worker = async () => {
-    while (next < items.length && !failed) {
-      if (signal?.aborted) throw { code: "cancelled" };
+    while (next < items.length && !err) {
+      if (signal?.aborted) { err ??= { code: "cancelled" }; break; }
       const i = next++;
-      try { await fn(items[i], i); } catch (e) { failed = true; throw e; }
+      try { await fn(items[i], i); } catch (e) { err ??= e; }
     }
   };
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));  // waits for every worker
+  if (err) throw err;
 }
 function searchTerms() {
   const on = state.prefs.roles?.length ? state.prefs.roles : DEFAULT_ROLES;
@@ -992,7 +1056,7 @@ function jobFrom(f, desc = "") {
   const [lo, hi] = payParse(f["Compensation"]);
   return { title: (f["Job Title"] || "").trim(), company: (f["Company"] || "").trim(), location: (f["Location"] || "").trim(),
     jobId: (f["Job Id"] || "").trim(), posted: toISO(f["Posted on"] || ""), type: (f["Job Type"] || "").trim(),
-    payText: (f["Compensation"] || "").trim(), payMin: lo, payMax: hi, url: (f["View Job URL"] || "").trim(), description: desc.trim() };
+    payText: (f["Compensation"] || "").trim(), payMin: lo, payMax: hi, url: safeUrl(f["View Job URL"]), description: desc.trim() };
 }
 function parseSearch(md) {
   const out = []; let cur = {};
@@ -1005,11 +1069,15 @@ function parseSearch(md) {
   return out.filter((j) => j.title);
 }
 function parseDetails(md) {
-  const text = String(md || ""); const f = {}; let last = 0;
-  const t = text.match(/^\s*#+\s*(.+)$/m); if (t) f["Job Title"] = t[1];
-  const re = new RegExp(FIELD.source, "g"); let m;
-  while ((m = re.exec(text))) { if (!(m[1] in f)) f[m[1]] = m[2]; last = re.lastIndex; }
-  return jobFrom(f, text.slice(last));
+  // fields come only from the header block; the employer's own text starts after it
+  const lines = String(md || "").split("\n"); const f = {}; let i = 0;
+  for (; i < lines.length; i++) {
+    const ln = lines[i]; if (!ln.trim()) { if (Object.keys(f).length) { const nx = lines.slice(i + 1).find((x) => x.trim()); if (!nx || !FIELD.test(nx)) break; } continue; }
+    const t = ln.match(/^\s*#+\s*(.+)$/); if (t && !f["Job Title"]) { f["Job Title"] = t[1]; continue; }
+    const m = ln.match(FIELD); if (m) { if (!(m[1] in f)) f[m[1]] = m[2]; continue; }
+    break;
+  }
+  return jobFrom(f, lines.slice(i).join("\n"));
 }
 function payloadText(r) {
   const p = r?.payload;
@@ -1120,13 +1188,15 @@ async function reviseResume(j, request) {
   if (!r2 || typeof r2 !== "object" || !Array.isArray(r2.experience)) throw new Error("I couldn't update it that time. Try asking a different way.");
   const note = r2.note; delete r2.note;
   const removed = factCheck(r2, state.profile);
-  const updated = { ...j, resume: r2, removedFacts: removed };
+  const cur = state.jobs.find((x) => x.key === j.key) || j;
+  const updated = { ...cur, resume: r2, removedFacts: removed };
   await store.saveJob(updated);
   return { job: updated, note };
 }
 function numbersIn(s) { return new Set((String(s || "").match(/(?<![\w.])\$?\d[\d,]*(?:\.\d+)?%?\+?/g) || []).map((n) => n.replace(/[$+%,]/g, ""))); }
-function certCodes(s) { return new Set(Object.entries(CERTS).filter(([, a]) => any(s, a)).map(([c]) => c)); }
+function certCodes(s) { return new Set(Object.entries(CERTS).filter(([, a]) => anyCert(s, a)).map(([c]) => c)); }
 function factCheck(r, p) {
+  shapeResume(r);
   const src = (JSON.stringify(p) + "\n" + state.resumeText).toLowerCase();
   const srcNums = numbersIn(src); const have = herCerts(p); const removed = [];
   const okText = (s) => {
@@ -1141,7 +1211,7 @@ function factCheck(r, p) {
   r.experience = (r.experience || []).filter((e) => {
     const real = jobs.find((x) => norm(x.employer) === norm(e.employer) && norm(x.title) === norm(e.title)) || jobs.find((x) => norm(x.employer) === norm(e.employer));
     if (!real) { removed.push(`Job "${e.title}" at "${e.employer}" isn't on your resume`); return false; }
-    e.title = real.title; e.employer = real.employer; e.start = real.start; e.end = real.end; e.location = e.location || real.location;
+    e.title = real.title; e.employer = real.employer; e.start = real.start; e.end = real.end; e.location = real.location || "";
     e.bullets = filt(e.bullets, real.employer); return true;
   });
   const vols = p.volunteer || [];
@@ -1152,8 +1222,12 @@ function factCheck(r, p) {
   const schools = p.education || [];
   r.education = (r.education || []).filter((ed) => {
     const real = schools.find((x) => norm(x.school) === norm(ed.school)); if (!real) { if (ed.school) removed.push(`School "${ed.school}" isn't on your resume`); return false; }
-    ed.school = real.school; ed.gpa = real.gpa || ""; ed.end = real.end || ed.end; return true;
+    ed.school = real.school; ed.program = real.program || ""; ed.status = real.status || ""; ed.gpa = real.gpa || ""; ed.end = real.end || "";
+    const dWhy = okText(ed.details); if (dWhy) { removed.push(`${real.school}: "${ed.details}" (${dWhy})`); ed.details = ""; }
+    return true;
   });
+  const tWhy = okText(r.target_title);
+  if (tWhy) { removed.push(`Headline "${r.target_title}" (${tWhy})`); r.target_title = ""; }
   const sumWhy = okText(r.summary);
   if (sumWhy) { removed.push(`Summary changed (${sumWhy})`); r.summary = String(r.summary).split(/(?<=[.!?])\s+/).filter((x) => !okText(x)).join(" "); }
   for (const g of Object.keys(r.skills || {})) r.skills[g] = filt(r.skills[g], "Skills");
@@ -1180,10 +1254,10 @@ async function startSearch() {
   if (!cap.mcp || !cap.sample) return showError("Searching and resume writing only work when this page is open inside Claude. Open it from your Claude chat and try again.");
 
   state.running = true; state.abort = new AbortController(); const signal = state.abort.signal;
-  $("#progress").replaceChildren(); renderSetup();
-  ky("working", "On it!", "Sniffing around for jobs near " + state.zip + "… this takes a few minutes. You can keep this page open and grab a snack.");
-  await persistSettings();
   try {
+    $("#progress").replaceChildren(); renderSetup();
+    ky("working", "On it!", "Sniffing around for jobs near " + state.zip + "… this takes a few minutes. You can keep this page open and grab a snack.");
+    persistSettings();
     progress("profile", "Reading your resume");
     const p = await learnProfile();
     progress("profile", `Read your resume: ${p.experience.length} job${p.experience.length === 1 ? "" : "s"}, ${p.certifications.length} certification${p.certifications.length === 1 ? "" : "s"}`, "done");
@@ -1192,12 +1266,14 @@ async function startSearch() {
     const found = new Map();
     const terms = searchTerms();
     kyScurry();
-    let searched = 0;
+    let searched = 0, termFails = 0;
     progress("search", `Searching Indeed for ${terms.length} kinds of jobs near ${state.zip}`);
     await runPool(terms, 3, async (term) => {
       const input = { search: term, location: state.zip, country_code: "US" };
       if (state.prefs.schedule !== "any") input.job_type = state.prefs.schedule;
-      const md = await indeed("search_jobs", input, signal);
+      let md;
+      try { md = await indeed("search_jobs", input, signal); }
+      catch (e) { if (e instanceof ConnectorProblem || e?.code === "cancelled") throw e; termFails++; console.warn("search", term, e); return; }
       for (const j of parseSearch(md)) {
         const key = "j" + hash(norm(j.company) + "|" + norm(j.title) + "|" + norm(j.location));
         if (!found.has(key) && !known.has(key)) found.set(key, { ...j, key });
@@ -1206,6 +1282,7 @@ async function startSearch() {
       progress("search", `Searched ${searched} of ${terms.length} job types, ${found.size} new listings so far`);
       ky("working", SNIFF_LINES[searched % SNIFF_LINES.length], `Checking ${term} jobs near ${state.zip}…`);
     }, signal);
+    if (termFails === terms.length) throw new Error("Indeed didn't answer just now. Press Start to try again in a minute.");
     let pool = [...found.values()].map((j) => ({ j, s: score(j, p) })).filter((x) => x.s.tier && !serious(x.s));
     progress("search", `Found ${found.size} new listings, ${pool.length} are entry-level patient-care jobs`, "done");
     if (!pool.length) {
@@ -1222,7 +1299,7 @@ async function startSearch() {
       if (!(fails >= 2 && read === 0)) {  // if details keep failing, rank from the listings instead
         try {
           const d = parseDetails(await indeed("get_job_details", { job_id: x.j.jobId }, signal));
-          if (d.description) { x.j.description = d.description.slice(0, 9000); x.j.url = d.url || x.j.url; read++; } else fails++;
+          if (d.description) { x.j.description = d.description.slice(0, 9000); x.j.url = safeUrl(d.url) || x.j.url; read++; } else fails++;
         } catch (e) { if (e instanceof ConnectorProblem || e?.code === "cancelled") throw e; fails++; }
       }
       x.s = score(x.j, p);
@@ -1234,12 +1311,13 @@ async function startSearch() {
     let made = 0, started = 0;
     progress("tailor", `Writing your resumes (0 of ${pool.length} done)`);
     await runPool(pool, 2, async (x) => {
+      if (state.jobs.some((y) => y.key === x.j.key)) return;  // already saved (keeps her status and notes)
       started++;
       ky("working", `Writing resume ${started} of ${pool.length}`, `Tailoring your resume for ${x.j.title} at ${x.j.company}.`);
       let tailored = null, removed = [];
       try {
-        tailored = await cap.sample.json(tailorPrompt(p, x.j, x.s), { signal, cache: false });
-        removed = factCheck(tailored, p);
+        const t = await cap.sample.json(tailorPrompt(p, x.j, x.s), { signal, cache: false });
+        removed = factCheck(t, p); tailored = t;  // only a resume that passed the fact check is kept
       } catch (e) {
         if (e?.code === "cancelled") throw e;
         if (["not_granted", "sampling_disabled", "rate_limited", "session_expired"].includes(e?.code)) throw e;
@@ -1252,7 +1330,8 @@ async function startSearch() {
       if (tailored) { made++; heart(); }
       progress("tailor", `Writing your resumes (${made} of ${pool.length} done)`);
     }, signal);
-    progress("tailor", `Wrote ${made} tailored resume${made === 1 ? "" : "s"}`, "done");
+    progress("tailor", `Wrote ${made} tailored resume${made === 1 ? "" : "s"}`, made ? "done" : "fail");
+    if (!made) { ky(null, "Hmm", "I found jobs but couldn't write the resumes this time. Tap Try again on a job below, or press Start in a little while."); return; }
     kyConfetti();
     ky("happy", "Ta-da!", `I found ${pool.length} job${pool.length === 1 ? "" : "s"} near you and wrote a resume for ${made === pool.length ? "each one" : made + " of them"}. They're below. Download a resume, open the job, and apply when you're ready!`);
     setTimeout(() => $("#jobsTitle").scrollIntoView({ behavior: "smooth", block: "start" }), 400);
@@ -1261,8 +1340,8 @@ async function startSearch() {
     else if (e instanceof ConnectorProblem) { showError(e.message); ky(null, "Almost there!", "I need one quick thing fixed before I can search. See the note below."); }
     else if (e?.code === "not_granted") { showError("I need your OK to use Claude to read your resume and write new ones. Press Start again and choose Allow."); ky(null, "Can I help?", "Press Start again and choose Allow when Claude asks."); }
     else if (e?.code === "rate_limited") { showError("You've hit your Claude usage limit for now. Anything I finished is saved below. Try again later."); ky(null, "Taking a break", "We used a lot of Claude for now. Let's pick up later!"); }
-    else if (e?.code === "sampling_disabled" || e?.code === "session_expired") { showError("Claude isn't available right now. Sign in to Claude again, then reopen this page."); }
-    else { console.error(e); showError(e?.message && !String(e.message).startsWith("{") ? e.message : "Something went wrong while searching. Press Start to try again."); ky(null, "Oops", "Something went wrong. Let's try that again."); }
+    else if (e?.code === "sampling_disabled" || e?.code === "session_expired") { showError("Claude isn't available right now. Sign in to Claude again, then reopen this page."); ky(null, "Hmm", "Claude isn't available right now."); }
+    else { console.error(e); showError(friendly(e, "Something went wrong while searching. Press Start to try again.")); ky(null, "Oops", "Something went wrong. Let's try that again."); }
   } finally {
     state.running = false; state.abort = null; $("#runner").hidden = true; renderSetup();
   }
@@ -1482,17 +1561,19 @@ function buildLetterPDF(job, r, p) {
   y += 32; doc.setTextColor(30, 38, 36); doc.setFontSize(11);
   doc.text(new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }), M, y); y += 28;
   for (const para of [`Dear Hiring Team at ${job.company},`, ...(r.cover_letter || []), "Sincerely,"]) {
-    for (const ln of doc.splitTextToSize(para, W)) { doc.text(ln, M, y); y += 15.5; }
+    for (const ln of doc.splitTextToSize(para, W)) { if (y > 792 - M) { doc.addPage(); y = M; } doc.text(ln, M, y); y += 15.5; }
     y += 9;
   }
   doc.text(p.name, M, y);
   return doc.output("blob");
 }
 function fileBase(job, p) { return `${(p.name || "Resume").replace(/[^A-Za-z0-9]+/g, "_")}_${(job.company || "Job").replace(/[^A-Za-z0-9]+/g, "_").slice(0, 30)}`; }
-async function save(filename, blobPromise) {
+async function save(filename, make) {
   if (!cap.downloads) { toast("Downloads only work inside Claude. Open this page from your Claude chat."); return; }
+  let data;
+  try { data = await (typeof make === "function" ? make() : make); }
+  catch (e) { console.warn(e); toast("I couldn't make that file. Reload the page and try again."); return; }
   try {
-    const data = await blobPromise;
     const res = await cap.downloads.save({ filename, data });
     if (res?.status === "saved") toast("Saved " + filename);
   } catch (e) {
@@ -1514,10 +1595,10 @@ function renderSetup() {
   $("#count").textContent = state.count;
   $("#minus").disabled = state.count <= 1; $("#plus").disabled = state.count >= 10;
   const ready = has && /^\d{5}$/.test(state.zip);
-  $("#start").disabled = !ready || state.running;
+  $("#start").disabled = !ready || state.running || !state.jobsLoaded;
   $("#start").textContent = state.running ? "Searching…" : (state.jobs.length ? "Find more jobs" : "Start the search");
   $("#stop").hidden = !state.running;
-  $("#startHelp").textContent = state.running ? "This takes a few minutes." : ready ? `I'll find ${state.count} job${state.count === 1 ? "" : "s"} near ${state.zip}.` : !has ? "Add your resume to start." : "Add your ZIP code to start.";
+  $("#startHelp").textContent = state.running ? "This takes a few minutes." : ready && !state.jobsLoaded ? "Loading your saved jobs…" : ready ? `I'll find ${state.count} job${state.count === 1 ? "" : "s"} near ${state.zip}.` : !has ? "Add your resume to start." : "Add your ZIP code to start.";
   renderLearned();
 }
 
@@ -1559,8 +1640,8 @@ function jobCard(j) {
     </div>
     <div class="pills">${pills.join("")}</div>
     <div class="meters">
-      <div><div class="meter-label"><span>Patient-care hours</span><span>${clinWord(j.clinical)}</span></div><div class="bar clin"><i style="width:${j.clinical}%"></i></div></div>
-      <div><div class="meter-label"><span>Fit for you</span><span>${fitWord(j)}</span></div><div class="bar fit"><i style="width:${j.fit}%"></i></div></div>
+      <div><div class="meter-label"><span>Patient-care hours</span><span>${clinWord(j.clinical)}</span></div><div class="bar clin"><i style="width:${Math.max(0, Math.min(100, Number(j.clinical) || 0))}%"></i></div></div>
+      <div><div class="meter-label"><span>Fit for you</span><span>${fitWord(j)}</span></div><div class="bar fit"><i style="width:${Math.max(0, Math.min(100, Number(j.fit) || 0))}%"></i></div></div>
     </div>
     ${(j.notes || []).length || j.setting ? `<div class="reasons">${esc([j.setting && j.setting !== "setting not listed" ? j.setting[0].toUpperCase() + j.setting.slice(1) : "", ...(j.notes || [])].filter(Boolean).join(" · "))}</div>` : ""}
     ${why}
@@ -1631,6 +1712,9 @@ function renderAlerts() {
   if (a?.on) {
     $("#alertsText").innerHTML = `<span class="state-on">Alerts are on.</span> I check for new jobs near ${esc(a.zip || state.zip)} every morning${a.lastRun ? " (last check " + esc(new Date(a.lastRun).toLocaleDateString()) + ")" : ""} and you'll get a notification when I find one.`;
     $("#alertsBtn").textContent = "Change or turn off";
+  } else {
+    $("#alertsText").textContent = "I can check for new jobs near you every morning and send you a notification when I find a good one. Any new jobs show up right here with a resume ready.";
+    $("#alertsBtn").textContent = "Turn on job alerts";
   }
 }
 
@@ -1638,9 +1722,10 @@ function renderAlerts() {
    Dialogs
    =================================================================== */
 function modal(html, onMount) {
-  const root = $("#modalRoot");
-  root.innerHTML = `<div class="scrim" role="dialog" aria-modal="true"><div class="dialog">${html}</div></div>`;
-  const close = () => { root.innerHTML = ""; document.removeEventListener("keydown", onKey); };
+  const root = $("#modalRoot"); const opener = document.activeElement;
+  root.innerHTML = `<div class="scrim" role="dialog" aria-modal="true" aria-labelledby="dlgTitle"><div class="dialog">${html}</div></div>`;
+  const h = $(".dialog h2", root); if (h) h.id = "dlgTitle";
+  const close = () => { root.innerHTML = ""; document.removeEventListener("keydown", onKey); if (opener && document.contains(opener)) opener.focus?.(); };
   const onKey = (e) => {
     if (e.key === "Escape") close();
     if (e.key === "Tab") {
@@ -1685,7 +1770,9 @@ function resumeHTML(r, p, tpl = state.template) {
 }
 
 function openPreview(j, startTab = "r") {
-  const p = state.profile; let r = j.resume; if (!p || !r) return;
+  const p = state.profile; let r = j.resume;
+  if (!p) return toast("I'm still reading your resume. Try again in a moment.");
+  if (!r) return;
   const qs = (r.questions_for_candidate || []).filter(Boolean);
   const tips = (r.interview_tips || []).filter(Boolean);
   const removed = j.removedFacts || [];
@@ -1761,24 +1848,23 @@ function openPreview(j, startTab = "r") {
       $("#paperWrap", dlg).innerHTML = resumeHTML(r, p);
       persistSettings();
     }));
-    dlg.querySelector('[data-dl="pdf"]').addEventListener("click", () => save(fileBase(j, p) + "_Resume.pdf", buildPDF(r, p).blob));
-    dlg.querySelector('[data-dl="docx"]').addEventListener("click", () => save(fileBase(j, p) + "_Resume.docx", buildDOCX(r, p)));
-    dlg.querySelector('[data-dl="letter"]').addEventListener("click", () => save(fileBase(j, p) + "_Cover_Letter.docx", buildLetterDOCX(j, r, p)));
-    dlg.querySelector('[data-dl="letterpdf"]').addEventListener("click", () => save(fileBase(j, p) + "_Cover_Letter.pdf", buildLetterPDF(j, r, p)));
+    dlg.querySelector('[data-dl="pdf"]').addEventListener("click", () => save(fileBase(j, p) + "_Resume.pdf", () => buildPDF(r, p).blob));
+    dlg.querySelector('[data-dl="docx"]').addEventListener("click", () => save(fileBase(j, p) + "_Resume.docx", () => buildDOCX(r, p)));
+    dlg.querySelector('[data-dl="letter"]').addEventListener("click", () => save(fileBase(j, p) + "_Cover_Letter.docx", () => buildLetterDOCX(j, r, p)));
+    dlg.querySelector('[data-dl="letterpdf"]').addEventListener("click", () => save(fileBase(j, p) + "_Cover_Letter.pdf", () => buildLetterPDF(j, r, p)));
     dlg.querySelector("[data-copyletter]").addEventListener("click", async () => { try { await navigator.clipboard.writeText(letterText(j, r, p)); toast("Cover letter copied"); } catch { toast("Select the text and copy it."); } });
     dlg.querySelector("[data-askky]").addEventListener("click", () => { close(); openChat({ job: j }); });
     let busy = false;
-    const runRevise = async (request, statusEl) => {
+    const runRevise = async (request, statusEl, tab = "r") => {
       if (busy || !String(request).trim()) return;
       busy = true; statusEl.textContent = "Updating your resume…"; ky("working", "Tweaking it…", "Updating your resume for " + j.company + ".");
       try {
         const res = await reviseResume(j, request);
-        j = res.job; r = j.resume;
-        $("#paperWrap", dlg).innerHTML = resumeHTML(r, p);
-        statusEl.textContent = res.note || "Updated! Take a look.";
+        close(); openPreview(res.job, tab);  // re-render every tab with the new version
+        const st = document.querySelector(tab === "t" ? "#qaStatus" : "#revStatus"); if (st) st.textContent = res.note || "Updated! Take a look.";
         ky("happy", "Updated!", res.note || "Your resume is updated. Download it again to get the new version.");
       } catch (e) {
-        statusEl.textContent = e?.code === "rate_limited" ? "You've hit your Claude usage limit for now." : e?.code === "not_granted" ? "I need your OK to use Claude. Try again and tap Allow." : (e?.message && !String(e.message).startsWith("{") ? e.message : "I couldn't update it. Try again.");
+        statusEl.textContent = friendly(e, "I couldn't update it. Try again.");
         ky(null, "Hmm", "I couldn't update that one. Try again in a moment.");
       } finally { busy = false; }
     };
@@ -1788,9 +1874,10 @@ function openPreview(j, startTab = "r") {
     dlg.querySelector("[data-saveqa]")?.addEventListener("click", async () => {
       const pairs = [...dlg.querySelectorAll("[data-qa]")].map((inp) => [qs[+inp.dataset.qa], inp.value.trim()]).filter(([, a]) => a);
       if (!pairs.length) return ($("#qaStatus", dlg).textContent = "Type an answer first.");
-      state.profile.extra_facts = [...(state.profile.extra_facts || []), ...pairs.map(([q, a]) => ({ question: q, answer: a.slice(0, 300) }))];
+      const had = state.profile.extra_facts || [];
+      state.profile.extra_facts = [...had, ...pairs.filter(([q, a]) => !had.some((f) => f.question === q && f.answer === a)).map(([q, a]) => ({ question: q, answer: a.slice(0, 300) }))];
       await persistSettings();
-      await runRevise("Use her new answers in extra_facts wherever they make this resume stronger, especially to add real numbers to bullets.", $("#qaStatus", dlg));
+      await runRevise("Use her new answers in extra_facts wherever they make this resume stronger, especially to add real numbers to bullets.", $("#qaStatus", dlg), "t");
     });
   });
 }
@@ -1816,7 +1903,7 @@ function openApply(j) {
     <p class="small">Still want my help? Copy this message and send it to me in your Claude chat:</p>
     ${copyBlock("applyMsg", msg)}`, (dlg) => {
     wireCopy(dlg);
-    dlg.querySelector('[data-dl="pdf"]')?.addEventListener("click", () => save(fileBase(j, state.profile) + "_Resume.pdf", buildPDF(j.resume, state.profile).blob));
+    dlg.querySelector('[data-dl="pdf"]')?.addEventListener("click", () => { if (!state.profile) return toast("I'm still reading your resume. Try again in a moment."); save(fileBase(j, state.profile) + "_Resume.pdf", () => buildPDF(j.resume, state.profile).blob); });
   });
 }
 
@@ -2008,7 +2095,7 @@ function hoursCSV() {
   const rows = [["Date", "Place", "Hours", "Kind", "Supervisor", "Supervisor contact", "What I did"]];
   for (const h of [...state.hours].sort((a, b) => String(a.date).localeCompare(String(b.date)))) rows.push([h.date, h.place, h.hours, KIND_LABEL[h.kind] || h.kind, h.supervisor || "", h.contact || "", h.notes || ""]);
   const t = hoursTotals(); rows.push([], ["Total hours", "", fmtH(t.total)], ["Hands-on patient care", "", fmtH(t.direct)]);
-  return rows.map((r) => r.map((c) => { const s = String(c ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }).join(",")).join("\r\n");
+  return rows.map((r) => r.map((c) => { let s = String(c ?? ""); if (/^[=+\-@]/.test(s) && !/^-?\d+(\.\d+)?$/.test(s)) s = "'" + s; return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }).join(",")).join("\r\n");
 }
 
 /* ===================================================================
@@ -2142,8 +2229,8 @@ function chatTools(me) {
       async execute(input) {
         const e = await addHours(input);
         addNote(`Logged ${fmtH(e.hours)} hours at ${e.place}`, { type: "hour", id: e.id }, me);
-        const t = hoursTotals();
-        return { saved: true, date: e.date, place: e.place, hours: e.hours, total_hours: t.total + e.hours, hands_on: t.direct + (e.kind === "direct" ? e.hours : 0) };
+        const t = hoursTotals(), counted = state.hours.some((h) => h.id === e.id);
+        return { saved: true, date: e.date, place: e.place, hours: e.hours, total_hours: counted ? t.total : t.total + e.hours, hands_on: counted ? t.direct : t.direct + (e.kind === "direct" ? e.hours : 0) };
       },
     },
     {
@@ -2180,17 +2267,17 @@ async function sendChat(text) {
   if (!cap.sample) { chat.msgs.push({ role: "assistant", content: "I can only chat when this page is open inside Claude. Open me from your Claude chat and ask again!" }); renderChat(); saveChat(); return; }
   const me = { role: "assistant", content: "", pending: true }; chat.msgs.push(me);
   chat.busy = true; chat.ctl = new AbortController(); renderChat();
-  const history = chat.msgs.filter((m) => (m.role === "user" || m.role === "assistant") && !m.pending && m.content && !m.error).slice(-16);
-  const turns = [{ role: "user", content: CHAT_RULES + "\n\nWhat you know about her right now (JSON):\n" + chatContext() }, ...history.map((m) => ({ role: m.role, content: m.content }))];
-  const opts = { signal: chat.ctl.signal, cache: false, onText: ({ text: t }) => { me.content = t; paintMsg(me); } };
-  try { const lim = await cap.sample.limits(); if (lim?.tools) opts.tools = chatTools(me); } catch {}
   try {
+    const history = chat.msgs.filter((m) => (m.role === "user" || m.role === "assistant") && !m.pending && m.content && !m.error).slice(-16);
+    const turns = [{ role: "user", content: CHAT_RULES + "\n\nWhat you know about her right now (JSON):\n" + chatContext() }, ...history.map((m) => ({ role: m.role, content: m.content }))];
+    const opts = { signal: chat.ctl.signal, cache: false, onText: ({ text: t }) => { me.content = t; paintMsg(me); } };
+    try { const lim = await cap.sample.limits(); if (lim?.tools) opts.tools = chatTools(me); } catch {}
     const res = await cap.sample(turns, opts);
     me.content = res.text + (res.truncated ? "\n\n(I ran out of room. Ask me to keep going!)" : "");
   } catch (e) {
     me.content = e?.text || "";
     if (e?.code === "cancelled") { if (!me.content) me.content = "(Stopped)"; }
-    else me.error = chatErr(e?.code);
+    else { if (!e?.code) console.error(e); me.error = chatErr(e?.code); }
   } finally {
     me.pending = false; chat.busy = false; chat.ctl = null; renderChat(); saveChat();
   }
@@ -2249,14 +2336,14 @@ function wireV2() {
   $("#hoursCsv").addEventListener("click", () => {
     if (!state.hours.length) return toast("Log some hours first.");
     const name = (state.profile?.name || "My").replace(/[^A-Za-z0-9]+/g, "_");
-    save(`${name}_Patient_Care_Hours.csv`, new Blob([hoursCSV()], { type: "text/csv" }));
+    save(`${name}_Patient_Care_Hours.csv`, () => new Blob([hoursCSV()], { type: "text/csv" }));
   });
   // chat
   $("#fab").addEventListener("click", () => openChat());
   $("#chatClose").addEventListener("click", closeChat);
   $("#chat").addEventListener("keydown", (e) => { if (e.key === "Escape") closeChat(); });
   $("#chatStop").addEventListener("click", () => chat.ctl?.abort());
-  $("#chatReset").addEventListener("click", () => { chat.ctl?.abort(); chat.msgs = []; chat.focus = null; chat.focusFresh = false; saveChat(); renderChat(); });
+  $("#chatReset").addEventListener("click", () => { chat.ctl?.abort(); chat.busy = false; chat.msgs = []; chat.focus = null; chat.focusFresh = false; saveChat(); renderChat(); });
   $("#chatFocusClear").addEventListener("click", () => { chat.focus = null; chat.focusFresh = false; renderChat(); });
   $("#chatForm").addEventListener("submit", (e) => { e.preventDefault(); const v = $("#chatIn").value; $("#chatIn").value = ""; $("#chatIn").style.height = ""; sendChat(v); });
   $("#chatIn").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("#chatForm").requestSubmit(); } });
@@ -2272,15 +2359,22 @@ function wireV2() {
 /* ===================================================================
    Events
    =================================================================== */
+let settingsLoaded; const settingsReady = new Promise((r) => (settingsLoaded = r));
 let settingsChain = Promise.resolve();
-function persistSettings() { settingsChain = settingsChain.then(writeSettings, writeSettings); return settingsChain; }
+// One write at a time, never before her saved settings have loaded, always merged onto the latest saved copy
+// (so alerts that Claude turned on in chat aren't overwritten).
+function persistSettings() { settingsChain = settingsChain.catch(() => {}).then(() => settingsReady).then(writeSettings).catch((e) => console.warn("settings", e)); return settingsChain; }
 async function writeSettings() {
-  const prev = (await store.settings()) || {};
-  await store.saveSettings({
+  let prev;
+  if (cap.db) { const snap = await cap.db.doc("settings/main").get(); prev = snap.exists ? snap.data() : {}; }  // a failed read means no write
+  else prev = lsGet("ky.settings") || {};
+  const next = {
     ...prev, zip: state.zip, count: state.count, resumeText: state.resumeText, resumeName: state.resumeName,
     profile: state.profile, profileHash: state.profileHash, prefs: state.prefs, template: state.template, hoursGoal: state.hoursGoal,
     updatedAt: new Date().toISOString(),
-  });
+  };
+  lsSet("ky.settings", next);
+  if (cap.db) await store._db(() => cap.db.doc("settings/main").set(next));
 }
 function wire() {
   const fileIn = $("#resumeFile"), drop = $("#drop");
@@ -2304,8 +2398,8 @@ function wire() {
     renderSetup();
   });
   $("#zip").addEventListener("change", () => persistSettings());
-  $("#minus").addEventListener("click", () => { state.count = Math.max(1, state.count - 1); renderSetup(); });
-  $("#plus").addEventListener("click", () => { state.count = Math.min(10, state.count + 1); renderSetup(); });
+  $("#minus").addEventListener("click", () => { state.count = Math.max(1, state.count - 1); renderSetup(); savePrefsSoon(); });
+  $("#plus").addEventListener("click", () => { state.count = Math.min(10, state.count + 1); renderSetup(); savePrefsSoon(); });
   $("#start").addEventListener("click", startSearch);
   $("#stop").addEventListener("click", () => state.abort?.abort());
   $("#alertsBtn").addEventListener("click", openAlerts);
@@ -2320,12 +2414,13 @@ function wire() {
     if (b?.dataset.act === "alerts") return openAlerts();
     const j = key && state.jobs.find((x) => x.key === key);
     if (!j) return;
-    if (!j.seen && (b || e.target.closest("a"))) store.patchJob(j.key, { seen: true });
+    if (!j.seen && (b || e.target.closest("a"))) { await store.patchJob(j.key, { seen: true }); j.seen = true; }
     if (!b) return;
     const act = b.dataset.act; const p = state.profile;
     if (act === "preview") openPreview(j);
-    else if (act === "pdf" && j.resume && p) save(fileBase(j, p) + "_Resume.pdf", buildPDF(j.resume, p).blob);
-    else if (act === "docx" && j.resume && p) save(fileBase(j, p) + "_Resume.docx", buildDOCX(j.resume, p));
+    else if ((act === "pdf" || act === "docx") && j.resume && !p) toast("I'm still reading your resume. Try again in a moment.");
+    else if (act === "pdf" && j.resume && p) save(fileBase(j, p) + "_Resume.pdf", () => buildPDF(j.resume, p).blob);
+    else if (act === "docx" && j.resume && p) save(fileBase(j, p) + "_Resume.docx", () => buildDOCX(j.resume, p));
     else if (act === "apply") openApply(j);
     else if (act === "ask") openChat({ job: j });
     else if (act === "followup") openChat({ job: j, send: `Can you write a short, polite follow-up email for my application to ${j.title} at ${j.company}? I applied on ${fmtDay(j.appliedOn)}.` });
@@ -2338,7 +2433,10 @@ function wire() {
   $("#nextList").addEventListener("click", onJobClick);
   $("#jobs").addEventListener("change", (e) => {
     const s = e.target.closest("[data-act=status]"); if (!s) return;
-    const j = state.jobs.find((x) => x.key === s.dataset.key); if (j) setStatus(j, s.value);
+    const j = state.jobs.find((x) => x.key === s.dataset.key); if (!j) return;
+    const before = { status: j.status || "new", appliedOn: j.appliedOn ?? null };
+    setStatus(j, s.value);
+    if (s.value === "skip") toast(`Hid ${j.title}.`, { label: "Undo", run: () => store.patchJob(j.key, before) });
   });
 }
 
@@ -2349,7 +2447,8 @@ async function retryTailor(j, btn) {
     const sc = score(j, state.profile);
     const r = await cap.sample.json(tailorPrompt(state.profile, j, sc), { cache: false });
     const removed = factCheck(r, state.profile);
-    await store.saveJob({ ...j, resume: r, removedFacts: removed });
+    const cur = state.jobs.find((x) => x.key === j.key) || j;
+    await store.saveJob({ ...cur, resume: r, removedFacts: removed });
   } catch (e) { toast(e?.code === "rate_limited" ? "You've hit your Claude usage limit for now." : "I still couldn't write it. Try again later."); btn.disabled = false; btn.textContent = "Try again"; }
 }
 
@@ -2368,10 +2467,16 @@ async function boot() {
     $("#envNotice").innerHTML = "<div><b>Job search isn't available here</b>Make sure the Indeed connector is added in Claude (Settings, then Connectors), then reopen this page.</div>";
     $("#envNotice").hidden = false;
   }
-  const s = await store.settings();
-  if (s) {
-    state.zip = s.zip || ""; state.count = s.count || 5; state.resumeText = s.resumeText || ""; state.resumeName = s.resumeName || "";
-    state.resumeHash = state.resumeText ? hash(state.resumeText) : ""; state.profile = s.profile || null; state.profileHash = s.profileHash || "";
+  let s = null;
+  try { s = await store.settings(); } catch (e) { console.warn("settings load", e); }
+  try { if (s) {
+    // anything she already changed while this loaded wins
+    if (!state.zip) state.zip = str(s.zip);
+    state.count = Math.max(1, Math.min(10, Number(s.count) || 5));
+    if (!state.resumeText && s.resumeText) {
+      state.resumeText = str(s.resumeText); state.resumeName = str(s.resumeName);
+      state.resumeHash = hash(state.resumeText); state.profile = shapeProfile(s.profile); state.profileHash = state.profile ? str(s.profileHash) : "";
+    }
     state.alerts = s.alerts || null;
     if (s.prefs) state.prefs = { roles: s.prefs.roles || null, schedule: s.prefs.schedule || "any", shifts: s.prefs.shifts || [] };
     if (s.template && TPL[s.template]) state.template = s.template;
@@ -2379,8 +2484,12 @@ async function boot() {
     $("#zip").value = state.zip;
     renderPrefs();
     if (state.resumeText) { const first = state.profile?.name?.split(" ")[0]; ky(null, `${part}${first ? ", " + first : ""}!`, "Your resume and ZIP code are saved. Tap Find more jobs whenever you're ready, check the jobs I found below, or tap Ask Ky if you have a question."); }
-  }
+  } } catch (e) { console.warn("settings apply", e); }
+  finally { state.settingsLoaded = true; settingsLoaded(); }
   renderSetup(); renderAlerts();
+  // alerts are turned on or off from the Claude chat; keep the card current
+  if (cap.db) try { cap.db.doc("settings/main").onSnapshot((snap) => { const a = snap.exists ? snap.data()?.alerts || null : null; if (JSON.stringify(a) !== JSON.stringify(state.alerts)) { state.alerts = a; renderAlerts(); renderNext(); } }, () => {}); } catch {}
+  const slow = () => { $("#envNotice").innerHTML = "<div><b>I can't reach your saved jobs yet</b>Check your connection, then reload this page. Your jobs and hours are safe.</div>"; $("#envNotice").hidden = false; };
   let lastTotal = null;
   store.watch("hours", (hrs) => {
     state.hours = hrs; renderHours(); renderNext(); renderStats();
@@ -2390,13 +2499,13 @@ async function boot() {
       if (m) { kyConfetti(); ky("happy", `${m} hours!`, `You've logged ${m} hours of healthcare work. Every one of them counts toward nursing school. I'm so proud of you!`); trick("wave", 1300); }
     }
     lastTotal = t;
-  });
+  }, slow);
   store.watch("jobs", (jobs) => {
-    state.jobs = jobs; renderJobs(); renderHours();
+    state.jobs = jobs; state.jobsLoaded = true; renderJobs(); renderHours();
     if (!$("#chat").hidden && !chat.busy) renderChat();
     const fresh = jobs.filter((j) => !j.seen).length;
     if (fresh && !state.running) ky("happy", "New jobs!", `I found ${fresh} new job${fresh === 1 ? "" : "s"} since you were last here. They're at the top of your list with resumes ready.`);
-  });
+  }, slow);
 }
 boot();
 })();

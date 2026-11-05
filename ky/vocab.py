@@ -129,16 +129,16 @@ ATS_KEYWORDS: dict[str, list[str]] = {
 }
 
 
-def find_terms(text: str, phrases: list[str]) -> list[str]:
-    """Return phrases (from the list) found in text, using word-ish boundaries."""
+def find_terms(text: str, phrases: list[str], whole: bool = False) -> list[str]:
+    """Return phrases (from the list) found in text.
+
+    Always needs a boundary at the start. Stems like "ambulat" match "ambulation"
+    unless whole=True, which also needs a boundary at the end (used for
+    certifications, so "PALS" doesn't match "palsy" and "CNA" doesn't match "CNAs").
+    """
     t = (text or "").lower()
-    found = []
-    for p in phrases:
-        pat = re.escape(p.lower())
-        # boundary at start; allow stems like "ambulat" to match "ambulation"
-        if re.search(rf"(?<![a-z0-9]){pat}", t):
-            found.append(p)
-    return found
+    end = r"(?![a-z])" if whole else ""
+    return [p for p in phrases if re.search(rf"(?<![a-z0-9]){re.escape(p.lower())}{end}", t)]
 
 
 def has_any(text: str, phrases: list[str]) -> bool:

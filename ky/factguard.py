@@ -35,7 +35,7 @@ def _numbers(s: str) -> set[str]:
 
 
 def _cert_codes_in(text: str) -> set[str]:
-    return {code for code, aliases in CERT_ALIASES.items() if find_terms(text, aliases)}
+    return {code for code, aliases in CERT_ALIASES.items() if find_terms(text, aliases, whole=True)}
 
 
 def _bullet_ok(bullet: str, source_text: str, source_nums: set[str], her_certs: set[str]) -> str | None:

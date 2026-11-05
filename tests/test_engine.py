@@ -192,3 +192,11 @@ def test_factguard_accepts_her_own_answers(profile):
     assert not factguard.check(r, profile).ok  # 32 isn't in her profile yet
     profile.data["extra_facts"] = [{"question": "About how many hours a week do you work?", "answer": "About 32 hours a week"}]
     assert factguard.check(r, profile).ok
+
+
+def test_cert_matching_is_whole_word(profile):
+    assert "PALS" not in cert_requirements("Experience with cerebral palsy patients preferred.")
+    assert "CNA" not in cert_requirements("You will work alongside CNAs and nurses.")
+    r = _good_resume()
+    r["experience"][0]["bullets"].append("Supported a client with cerebral palsy during daily routines")
+    assert factguard.check(r, profile).ok
