@@ -320,6 +320,10 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
 .next { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); flex-wrap: wrap; }
 .next p { flex: 1 1 260px; min-width: 0; }
 .reasons { font-size: .85rem; color: var(--muted); }
+.revise { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: var(--surface-2); }
+.revise-row { display: flex; gap: 8px; }
+.revise-row input, .qa input { flex: 1; min-width: 0; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--surface); }
+.qa { display: flex; flex-direction: column; gap: 4px; font-size: .92rem; }
 .copy-msg { align-self: flex-start; margin-top: -6px; border: 0; background: none; color: var(--teal); font-weight: 700; font-size: .8rem; cursor: pointer; padding: 2px 4px; }
 .kywrap { position: relative; width: 150px; height: 150px; }
 .ky { cursor: pointer; overflow: visible; transform-origin: 50% 75%; -webkit-tap-highlight-color: transparent; border-radius: 50%; }
@@ -733,6 +737,7 @@ async function readFile(file) {
     const r = await window.mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
     return r.value;
   }
+  if (/heic|heif/i.test(file.type) || /\.hei[cf]$/.test(name)) throw new Error("That photo is in iPhone's HEIC format, which I can't read. Take a screenshot of it instead, or use a PDF or Word file.");
   if (file.type.startsWith("image/")) {
     if (!cap.sample) throw new Error("I can only read photos inside Claude. Try a PDF or Word file, or paste the text.");
     ky("working", "Reading your photo…", "Give me a moment to read your resume photo.");
@@ -777,7 +782,7 @@ ${resume}
 
 async function learnProfile() {
   if (state.profile && state.profileHash === state.resumeHash) return state.profile;
-  const p = await cap.sample.json(PROFILE_PROMPT(state.resumeText), { modelTier: "quick", cache: { gcTime: 864e5 } });
+  const p = await cap.sample.json(PROFILE_PROMPT(state.resumeText), { cache: { gcTime: 864e5 } });
   if (!p || typeof p !== "object" || !p.name) throw new Error("I couldn't read your name and experience from that resume.");
   p.experience = Array.isArray(p.experience) ? p.experience : [];
   p.certifications = Array.isArray(p.certifications) ? p.certifications.filter((c) => c && c.name) : [];
@@ -1061,6 +1066,7 @@ Required certifications she does NOT have (never claim these): ${sc.missing.join
 8. Summary: 2-3 sentences naming the target role, her strongest relevant experience, and her nursing goal. No clichés ("hard-working", "team player", "go-getter", "passionate").
 9. target_title: a short headline that matches this job, e.g. "Patient Care Technician Candidate | BLS Certified" (only certs she has).
 10. Skills: only skills her profile supports, with the posting's matching terms first.
+   Anything in "extra_facts" is something she told Ky directly. It counts as her fact and can be used.
 11. Cover letter: exactly 3 short paragraphs, each under 90 words. P1: the role, the employer, and a specific reason this employer or unit fits her. P2: two concrete examples from her real experience. P3: how this role fits her path to nursing, and a confident close. No greeting or sign-off.
 12. why_this_job: 2 friendly sentences TO HER about why this job is (or isn't) a good step toward nursing. Mention honestly if she's missing a requirement and whether it's still worth applying.
 13. No keyword stuffing, no copying sentences from the posting, nothing untrue.
@@ -1069,6 +1075,46 @@ Reply with ONLY this JSON:
 {"target_title":"","summary":"","certifications":[""],"experience":[{"title":"","employer":"","location":"","start":"","end":"","bullets":[""]}],"education":[{"school":"","program":"","status":"","end":"","gpa":"","details":""}],"skills":{"clinical":[""],"technical":[""],"languages":[""]},"volunteer":[{"role":"","org":"","start":"","end":"","hours":"","bullets":[""]}],"cover_letter":["","",""],"keywords_used":[""],"questions_for_candidate":[""],"why_this_job":"","interview_tips":["","",""]}`;
 }
 
+function revisePrompt(p, job, r, request) {
+  const her = { ...p, contact: { email: "[on file]", phone: "[on file]" } };
+  return `You are Ky, revising ${p.name.split(" ")[0]}'s tailored resume and cover letter for one job. She asked: "${String(request).slice(0, 500)}"
+
+# Her profile (the ONLY source of facts about her; "extra_facts" are things she told Ky directly and count as facts)
+${JSON.stringify(her, null, 1)}
+
+# Her original resume text
+"""
+${state.resumeText.slice(0, 6000)}
+"""
+
+# The job
+${job.title} at ${job.company} (${job.location})
+"""
+${String(job.description || "").slice(0, 4000)}
+"""
+
+# The current tailored version (JSON)
+${JSON.stringify(r)}
+
+# Rules
+- Do what she asked as long as it stays truthful. Never invent employers, titles, dates, schools, certifications, numbers, tools or duties. Copy employers, schools, titles and dates exactly from her profile.
+- Keep it to one page: 3-5 bullets for the main role, 2-3 for others, bullets under 25 words, no "I", no clichés.
+- Keep using the posting's real wording for skills she truly has.
+- If she asks for something untrue or something you can't do, leave that part as it was and explain in "note".
+- Keep the same JSON shape and keys as the current version, plus "note": one short friendly sentence to her about what you changed.
+
+Reply with ONLY the full revised JSON.`;
+}
+async function reviseResume(j, request) {
+  if (!cap.sample || !state.profile) throw new Error("Open this page inside Claude to update resumes.");
+  const r2 = await cap.sample.json(revisePrompt(state.profile, j, j.resume, request), { cache: false });
+  if (!r2 || typeof r2 !== "object" || !Array.isArray(r2.experience)) throw new Error("I couldn't update it that time. Try asking a different way.");
+  const note = r2.note; delete r2.note;
+  const removed = factCheck(r2, state.profile);
+  const updated = { ...j, resume: r2, removedFacts: removed };
+  await store.saveJob(updated);
+  return { job: updated, note };
+}
 function numbersIn(s) { return new Set((String(s || "").match(/(?<![\w.])\$?\d[\d,]*(?:\.\d+)?%?\+?/g) || []).map((n) => n.replace(/[$+%,]/g, ""))); }
 function certCodes(s) { return new Set(Object.entries(CERTS).filter(([, a]) => any(s, a)).map(([c]) => c)); }
 function factCheck(r, p) {
@@ -1574,7 +1620,15 @@ function modal(html, onMount) {
   const root = $("#modalRoot");
   root.innerHTML = `<div class="scrim" role="dialog" aria-modal="true"><div class="dialog">${html}</div></div>`;
   const close = () => { root.innerHTML = ""; document.removeEventListener("keydown", onKey); };
-  const onKey = (e) => { if (e.key === "Escape") close(); };
+  const onKey = (e) => {
+    if (e.key === "Escape") close();
+    if (e.key === "Tab") {
+      const f = [...root.querySelectorAll("button, a[href], input, select, textarea")].filter((x) => !x.disabled && x.offsetParent !== null);
+      if (!f.length) return;
+      if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
+      else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+    }
+  };
   document.addEventListener("keydown", onKey);
   $(".scrim", root).addEventListener("click", (e) => { if (e.target.classList.contains("scrim") || e.target.closest("[data-close]")) close(); });
   onMount?.($(".dialog", root), close);
@@ -1610,7 +1664,7 @@ function resumeHTML(r, p, tpl = state.template) {
 }
 
 function openPreview(j, startTab = "r") {
-  const p = state.profile; const r = j.resume; if (!p || !r) return;
+  const p = state.profile; let r = j.resume; if (!p || !r) return;
   const qs = (r.questions_for_candidate || []).filter(Boolean);
   const tips = (r.interview_tips || []).filter(Boolean);
   const removed = j.removedFacts || [];
@@ -1638,6 +1692,12 @@ function openPreview(j, startTab = "r") {
     <div data-pane="r" ${startTab === "r" ? "" : "hidden"}>
       <div class="actions" style="margin-bottom:10px"><span class="small muted">Design:</span><div class="seg" role="group" aria-label="Resume design">${segBtns()}</div></div>
       <div class="paper-wrap" id="paperWrap">${resumeHTML(r, p)}</div>
+      <div class="revise">
+        <label for="revIn"><b>Want changes?</b> Tell me what to change and I'll update it.</label>
+        <div class="choice">${["Make it shorter", "Sound more confident", "Focus more on patient care", "Simpler words"].map((t) => `<button type="button" data-rev="${t}">${t}</button>`).join("")}</div>
+        <div class="revise-row"><input id="revIn" placeholder="For example: talk more about my caregiving"><button class="btn btn-soft btn-sm" type="button" data-revise>Update</button></div>
+        <p class="small muted" id="revStatus" aria-live="polite"></p>
+      </div>
       <div class="actions" style="margin-top:12px">
         <button class="btn btn-primary btn-sm" data-dl="pdf">Download PDF</button>
         <button class="btn btn-soft btn-sm" data-dl="docx">Download Word</button>
@@ -1661,7 +1721,10 @@ function openPreview(j, startTab = "r") {
       <div><h3>Format check</h3>${formatChecks()}</div>
     </div>
     <div data-pane="t" ${startTab === "t" ? "" : "hidden"} style="display:flex;flex-direction:column;gap:12px">
-      ${qs.length ? `<div class="notice info"><div><b>Make it even stronger</b>Add these to your resume next time you upload it:<ul>${qs.map((q) => `<li>${esc(q)}</li>`).join("")}</ul></div></div>` : ""}
+      ${qs.length ? `<div class="notice info"><div style="display:flex;flex-direction:column;gap:8px;width:100%"><b>Make it even stronger</b><span>Answer any of these and I'll add them to your resume. Only answer what's true.</span>
+        ${qs.map((q, i) => `<label class="qa"><span>${esc(q)}</span><input data-qa="${i}" placeholder="Your answer"></label>`).join("")}
+        <button class="btn btn-primary btn-sm" type="button" data-saveqa style="align-self:flex-start">Save answers and update my resume</button>
+        <span class="small muted" id="qaStatus" aria-live="polite"></span></div></div>` : ""}
       ${tips.length ? `<div><h3>If they call you for an interview</h3><ul>${tips.map((q) => `<li>${esc(q)}</li>`).join("")}</ul></div>` : ""}
       ${(j.missing || []).length ? `<div class="notice warn"><div><b>Heads up</b>This job asks for ${esc(j.missing.join(", "))}, which isn't on your resume. Some employers still hire people who are getting certified, so it can be worth applying anyway.</div></div>` : ""}
       ${removed.length ? `<div class="notice info"><div><b>Things I left out to keep it honest</b><ul>${removed.slice(0, 6).map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></div>` : ""}
@@ -1683,6 +1746,31 @@ function openPreview(j, startTab = "r") {
     dlg.querySelector('[data-dl="letterpdf"]').addEventListener("click", () => save(fileBase(j, p) + "_Cover_Letter.pdf", buildLetterPDF(j, r, p)));
     dlg.querySelector("[data-copyletter]").addEventListener("click", async () => { try { await navigator.clipboard.writeText(letterText(j, r, p)); toast("Cover letter copied"); } catch { toast("Select the text and copy it."); } });
     dlg.querySelector("[data-askky]").addEventListener("click", () => { close(); openChat({ job: j }); });
+    let busy = false;
+    const runRevise = async (request, statusEl) => {
+      if (busy || !String(request).trim()) return;
+      busy = true; statusEl.textContent = "Updating your resume…"; ky("working", "Tweaking it…", "Updating your resume for " + j.company + ".");
+      try {
+        const res = await reviseResume(j, request);
+        j = res.job; r = j.resume;
+        $("#paperWrap", dlg).innerHTML = resumeHTML(r, p);
+        statusEl.textContent = res.note || "Updated! Take a look.";
+        ky("happy", "Updated!", res.note || "Your resume is updated. Download it again to get the new version.");
+      } catch (e) {
+        statusEl.textContent = e?.code === "rate_limited" ? "You've hit your Claude usage limit for now." : e?.code === "not_granted" ? "I need your OK to use Claude. Try again and tap Allow." : (e?.message && !String(e.message).startsWith("{") ? e.message : "I couldn't update it. Try again.");
+        ky(null, "Hmm", "I couldn't update that one. Try again in a moment.");
+      } finally { busy = false; }
+    };
+    dlg.querySelectorAll("[data-rev]").forEach((b) => b.addEventListener("click", () => runRevise(b.dataset.rev, $("#revStatus", dlg))));
+    dlg.querySelector("[data-revise]").addEventListener("click", () => runRevise($("#revIn", dlg).value, $("#revStatus", dlg)));
+    $("#revIn", dlg).addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); runRevise(e.target.value, $("#revStatus", dlg)); } });
+    dlg.querySelector("[data-saveqa]")?.addEventListener("click", async () => {
+      const pairs = [...dlg.querySelectorAll("[data-qa]")].map((inp) => [qs[+inp.dataset.qa], inp.value.trim()]).filter(([, a]) => a);
+      if (!pairs.length) return ($("#qaStatus", dlg).textContent = "Type an answer first.");
+      state.profile.extra_facts = [...(state.profile.extra_facts || []), ...pairs.map(([q, a]) => ({ question: q, answer: a.slice(0, 300) }))];
+      await persistSettings();
+      await runRevise("Use her new answers in extra_facts wherever they make this resume stronger, especially to add real numbers to bullets.", $("#qaStatus", dlg));
+    });
   });
 }
 

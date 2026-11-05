@@ -114,6 +114,14 @@ STUB = r"""
   sample.json = async (prompt) => {
     window.__sampleCalls++;
     if (String(prompt).includes("turn it into JSON")) return JSON.parse(JSON.stringify(FIX.profile));
+    if (String(prompt).includes("revising")) {
+      const r = JSON.parse(JSON.stringify(FIX.tailored));
+      r.summary = "Shorter summary for a caregiver headed to nursing school.";
+      r.experience[0].bullets = ["Assisted 4 clients per week with activities of daily living (ADLs)", "Helped 40 residents every night"];  // 40 is invented
+      r.note = "I made it shorter.";
+      window.__lastRevise = String(prompt);
+      return r;
+    }
     return JSON.parse(JSON.stringify(FIX.tailored));
   };
   sample.limits = async () => ({ maxPromptBytes: 262144, tools: { maxCount: 8 } });
@@ -182,6 +190,19 @@ async def main(libs: Path, shots: Path | None) -> int:
             ok(await page.locator(f".paper.tpl-{tpl}").count() == 1, f"preview switches to the {tpl} design")
             if shots and tpl == "modern":
                 await page.locator(".dialog").screenshot(path=str(shots / "preview_modern.png"))
+        await page.click('[data-rev="Make it shorter"]')
+        await page.wait_for_function("document.querySelector('#revStatus').textContent.includes('shorter')", timeout=10000)
+        ok("Shorter summary" in await page.inner_text("#paperWrap"), "asking for changes updates the resume preview")
+        ok("40 residents" not in await page.inner_text("#paperWrap"), "fact check still blocks invented numbers after a revision")
+        await page.click('[data-tab="t"]')
+        if await page.locator("[data-qa]").count():
+            await page.fill("[data-qa] >> nth=0", "About 20 hours a week")
+            await page.click("[data-saveqa]")
+            await page.wait_for_function("document.querySelector('#qaStatus').textContent.length > 0 && !document.querySelector('#qaStatus').textContent.includes('Updating')", timeout=10000)
+            facts = await page.evaluate("JSON.parse(localStorage.getItem('ky.settings')).profile.extra_facts")
+            ok(bool(facts) and facts[0]["answer"] == "About 20 hours a week", "her answers are saved as her own facts")
+            ok("About 20 hours a week" in await page.evaluate("window.__lastRevise"), "her answers are sent with the revision")
+        await page.click('[data-tab="r"]')
         await page.click('[data-dl="pdf"]'); await page.click('[data-dl="docx"]')
         await page.click('[data-tab="m"]')
         ok("Matches" in await page.locator('[data-pane="m"]').inner_text(), "job match tab shows the ATS report")
