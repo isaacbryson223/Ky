@@ -25,6 +25,11 @@ You get a list of jobs near you, each with:
 
 ## What else Ky does
 
+- **Ask Ky.** A little chat (the squirrel button in the corner) for questions about applying, interviews, certifications, and patient-care hours for nursing school. Ky knows her jobs and hours, can log hours or mark a job as applied when she tells it to (with Undo), writes follow-up emails, and runs practice interviews.
+- **Patient-care hours log.** Log shifts with supervisor contacts, set a goal, and download a CSV for school applications.
+- **Job match check.** Each resume shows which skills from the posting it covers ("Skills match 7/9") and passes a format check for applicant tracking systems.
+- **Three resume designs.** Clean, Modern and Classic, all one page and ATS-friendly.
+- **A squirrel with personality.** Ky's eyes follow your pointer, its ears twitch, it does tricks when you tap it, naps when you're away, scurries while searching, and rains acorns when it finds jobs.
 - **Job alerts.** Ky can check every morning and send a notification when a new job shows up near you, with a resume already written.
 - **Help applying.** Ky can fill in an application in Chrome for you. It warns you first that this uses a lot of Claude usage (applying yourself is usually faster), it never types passwords, and it stops before Submit so you press it yourself.
 - **Honesty built in.** Ky only uses facts from your resume. A fact checker removes any job, certification, number or tool that isn't on your resume before you ever see it.
@@ -40,7 +45,8 @@ You get a list of jobs near you, each with:
 | [`helper/ky.html`](helper/ky.html) | The squirrel helper page. It runs in her Claude: reads her resume, searches Indeed through her own Indeed connector, asks Claude to tailor each resume, fact-checks it, and makes the PDF and Word files |
 | [`agent/`](agent) | Ky's system prompt and the tailoring, interview-prep and follow-up prompts |
 | [`ky/`](ky) | A small Python engine used by the daily check: `ky score` ranks jobs, `ky check` fact-checks a resume, `ky search` can also use free job APIs (Adzuna, USAJOBS, Jooble) and hospital career sites |
-| [`PROMPT.md`](PROMPT.md) | The original design brief |
+| [`PROMPT.md`](PROMPT.md), [`PROMPT_V2.md`](PROMPT_V2.md) | The design briefs (v1 and the v2 improvements) |
+| [`tests/e2e/run_helper_e2e.py`](tests/e2e/run_helper_e2e.py) | Browser check of the whole helper flow with stand-ins for Indeed and Claude |
 
 ### Privacy
 
@@ -53,6 +59,8 @@ pip install -e ".[dev]"
 pytest                                    # run the tests
 ky score results.md --profile profile.example.yaml --limit 5
 ky check tailored.json --profile profile.example.yaml
+ky ats tailored.json --job job_details.md     # job match report
+ky terms --roles cna,pct,er                   # Indeed searches for chosen job types
 cp .env.example .env                      # add free job API keys, then:
 ky search --zip 92501 --profile profile.example.yaml
 ```

@@ -19,6 +19,10 @@ When Claude asks whether Ky can use Indeed and Claude, tap **Allow**.
 
 Ky finds entry-level healthcare jobs near you that give real patient-care hours, then writes a resume and cover letter for each one. Tap **Download PDF** to save a resume, then **Open job posting** to apply.
 
+**Have a question?** Tap **Ask Ky** in the bottom corner. Ask anything about applying, interviews, certifications, or patient-care hours. You can even say "I worked 8 hours at Sunrise today" and Ky will add it to your hours log.
+
+**Track your hours.** Once you start working, log each shift under **Your patient-care hours** (with your supervisor's name and contact). Tap **Download my hours** when a school asks.
+
 **Want Ky to keep watching?** Tap **Turn on job alerts** in the helper, copy the message it shows you, and send it in your Claude chat. Ky will check every morning and send you a notification when it finds a new job.
 
 **Coming back later?** Just say "Hi Ky" in a new Claude chat.

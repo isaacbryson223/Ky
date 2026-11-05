@@ -57,6 +57,21 @@ ROLE_TIERS: list[tuple[str, str, str]] = [
     ("C", "Pharmacy Tech", r"\bpharmacy tech"),
 ]
 
+# Job types she can pick in the helper ("Fine-tune my search"): id, label, Indeed searches, on by default.
+# Keep in sync with ROLE_OPTIONS in helper/ky.html.
+ROLE_OPTIONS: list[tuple[str, str, list[str], bool]] = [
+    ("cna", "CNA / Nursing assistant", ["certified nursing assistant", "nursing assistant hospital"], True),
+    ("pct", "Patient care tech", ["patient care technician"], True),
+    ("er", "ER tech", ["emergency room technician"], True),
+    ("care", "Caregiver / Home health", ["caregiver"], True),
+    ("ma", "Medical assistant", ["medical assistant"], True),
+    ("phleb", "Phlebotomy", ["phlebotomist"], True),
+    ("bh", "Behavioral health", ["behavioral health technician"], True),
+    ("ekg", "EKG / Monitor tech", ["EKG technician"], False),
+    ("sitter", "Sitter / Transport", ["patient sitter", "patient transporter"], False),
+]
+DEFAULT_ROLES = [r[0] for r in ROLE_OPTIONS if r[3]]
+
 # Search queries Ky runs on each source.
 SEARCH_TERMS = [
     "patient care technician",

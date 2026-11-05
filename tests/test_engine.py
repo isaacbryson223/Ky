@@ -155,3 +155,32 @@ def test_missing_certs_listed(profile):
     cna = score_job(parse_details((FIX / "indeed_details.md").read_text()), profile, TODAY)
     assert cna.missing == ["CNA license"]
     assert cna.to_dict()["key"].startswith("j")
+
+
+def test_ats_report_matches_page_logic():
+    from ky.ats import ats_report
+    job = parse_details((FIX / "indeed_details.md").read_text())
+    rep = ats_report(job.title, job.description, _good_resume())
+    assert "activities of daily living (ADLs)" in rep["matched"]
+    assert "vital signs" in rep["matched"]
+    assert rep["total"] == len(rep["matched"]) + len(rep["missing"])
+    assert 0 <= rep["pct"] <= 100
+
+
+def test_terms_and_shifts(capsys, profile):
+    assert main(["terms", "--roles", "cna,er"]) == 0
+    assert json.loads(capsys.readouterr().out) == ["certified nursing assistant", "nursing assistant hospital", "emergency room technician"]
+    rc = main(["score", str(FIX / "indeed_details.md"), "--profile", str(ROOT / "profile.example.yaml"), "--shifts", "days"])
+    out = json.loads(capsys.readouterr().out)
+    assert rc == 0 and "may clash" in out[0]["reasons"]["fit"]
+
+
+def test_helper_page_lists_match_engine():
+    """The helper page and the engine must use the same job types and ATS keywords."""
+    import re
+    from ky.vocab import ATS_KEYWORDS, ROLE_OPTIONS
+    page = (ROOT / "helper" / "ky.html").read_text()
+    for rid, label, terms, on in ROLE_OPTIONS:
+        assert f'["{rid}", "{label}", {json.dumps(terms)}, {"true" if on else "false"}]' in page.replace(", ", ", ")
+    page_kws = re.findall(r'^\s+"([^"]+)": \[', page.split("const ATS_KEYWORDS = {")[1].split("};")[0], re.M)
+    assert page_kws == list(ATS_KEYWORDS)

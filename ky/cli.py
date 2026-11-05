@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 
 from . import factguard
+from .ats import ats_report
 from .config import load_settings
 from .dedupe import dedupe
 from .models import Job
@@ -22,6 +23,7 @@ from .profile import Profile, ProfileError
 from .score import rank, score_job
 from .sources import all_sources, load_employers, run_search
 from .sources.indeed import parse_details, parse_search
+from .vocab import DEFAULT_ROLES, ROLE_OPTIONS
 
 
 def _load_jobs(path: Path) -> list[Job]:
@@ -42,6 +44,8 @@ def _load_jobs(path: Path) -> list[Job]:
 
 def cmd_score(a) -> int:
     profile = Profile.load(Path(a.profile))
+    if a.shifts:  # her "Shifts I can work" choices from the helper
+        profile.data.setdefault("availability", {})["shifts_ok"] = [x.strip() for x in a.shifts.split(",") if x.strip()]
     jobs: list[Job] = []
     for f in a.files:
         jobs += _load_jobs(Path(f))
@@ -67,6 +71,20 @@ def cmd_check(a) -> int:
     return 0 if rep.ok else 1
 
 
+def cmd_ats(a) -> int:
+    resume = json.loads(Path(a.file).read_text(encoding="utf-8"))
+    job = _load_jobs(Path(a.job))[0]
+    print(json.dumps(ats_report(job.title, job.description, resume), indent=2))
+    return 0
+
+
+def cmd_terms(a) -> int:
+    """Indeed search terms for her chosen job types (same list as the helper page)."""
+    roles = [r.strip() for r in (a.roles or "").split(",") if r.strip()] or DEFAULT_ROLES
+    print(json.dumps([t for rid, _label, terms, _on in ROLE_OPTIONS if rid in roles for t in terms]))
+    return 0
+
+
 def cmd_search(a) -> int:
     s = load_settings()
     profile = Profile.load(Path(a.profile)) if a.profile else None
@@ -90,6 +108,7 @@ def main(argv: list[str] | None = None) -> int:
     sc.add_argument("--profile", required=True, help="profile.yaml or profile.json")
     sc.add_argument("--seen", help="JSON list of job ids already shown to her")
     sc.add_argument("--limit", type=int, default=0)
+    sc.add_argument("--shifts", help="comma list of shifts she can work: days,evenings,nights,weekends")
     sc.set_defaults(fn=cmd_score)
 
     ck = sub.add_parser("check", help="fact-check a tailored resume against her profile")
@@ -97,6 +116,15 @@ def main(argv: list[str] | None = None) -> int:
     ck.add_argument("--profile", required=True)
     ck.add_argument("--fix", help="write a cleaned copy here")
     ck.set_defaults(fn=cmd_check)
+
+    at = sub.add_parser("ats", help="job match report: posting skills a tailored resume covers")
+    at.add_argument("file", help="tailored resume JSON")
+    at.add_argument("--job", required=True, help="job details (Indeed connector output or JSON)")
+    at.set_defaults(fn=cmd_ats)
+
+    te = sub.add_parser("terms", help="Indeed search terms for her chosen job types")
+    te.add_argument("--roles", help="comma list, e.g. cna,pct,er (default: the helper's defaults)")
+    te.set_defaults(fn=cmd_terms)
 
     se = sub.add_parser("search", help="search job APIs configured in .env")
     se.add_argument("--zip", required=True)

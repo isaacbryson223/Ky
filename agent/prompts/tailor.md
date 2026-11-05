@@ -54,6 +54,6 @@ Return ONLY a JSON object, no prose, matching this shape:
   "keywords_used": ["string"],
   "questions_for_candidate": ["string"],
   "why_this_job": "2-3 sentences for her: why this job is worth it (or not) for her nursing goal",
-  "interview_talking_points": ["string", "string", "string"]
+  "interview_tips": ["string", "string", "string"]
 }}
 ```

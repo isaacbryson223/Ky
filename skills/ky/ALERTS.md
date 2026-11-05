@@ -9,25 +9,23 @@ This runs on a schedule in a fresh session. Nobody is watching, so don't ask que
 1. **Get the repo** `isaacbryson223/ky` (attach it, or `git clone https://github.com/isaacbryson223/ky`), then `pip install --break-system-packages -e .` inside it.
 
 2. **Read her helper's data** (the artifact URL is in your prompt), using the artifact database tool:
-   - `settings/main` → `zip`, `count`, `resumeText`, `profile`, `alerts`.
+   - `settings/main` → `zip`, `count`, `resumeText`, `profile`, `alerts`, `prefs` (her "Fine-tune my search" choices: `roles`, `schedule`, `shifts`).
    - If `alerts.on` isn't true, stop quietly with: "Ky job alerts are turned off."
    - List the `jobs` collection → collect every document id (these are the jobs she's already seen).
    - Save `profile` to `profile.json` and the ids to `seen.json` (a JSON list).
 
-3. **Search Indeed** with the Indeed connector, `country_code: "US"`, `location: <zip>`, once for each of:
-   `patient care technician`, `certified nursing assistant`, `caregiver`, `medical assistant`,
-   `emergency room technician`, `phlebotomist`, `behavioral health technician`, `nursing assistant hospital`.
+3. **Search Indeed.** Get her search terms with `ky terms --roles <prefs.roles joined by commas>` (leave `--roles` off if she has no `prefs.roles`). Search once per term with the Indeed connector: `country_code: "US"`, `location: <zip>`, plus `job_type: <prefs.schedule>` when it is `parttime` or `fulltime`.
    Save each result's text to `search_1.md`, `search_2.md`, … exactly as returned.
 
 4. **Score and rank:**
    ```
-   ky score search_*.md --profile profile.json --seen seen.json --limit 8 > ranked.json
+   ky score search_*.md --profile profile.json --seen seen.json --limit 8 [--shifts <prefs.shifts joined by commas>] > ranked.json
    ```
    Drop anything with red flags other than "Posting is over 45 days old".
 
 5. **Read details** for the top jobs (up to `count`, at most 5) with the Indeed connector's `get_job_details` (`job_id` = the job's `external_id`). Save each to `detail_<n>.md`, then re-score them all together:
    ```
-   ky score detail_*.md --profile profile.json --seen seen.json --limit <count, max 5> > top.json
+   ky score detail_*.md --profile profile.json --seen seen.json --limit <count, max 5> [--shifts ...] > top.json
    ```
    If nothing is left, skip to step 8.
 

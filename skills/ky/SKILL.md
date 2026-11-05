@@ -53,7 +53,8 @@ Do these steps without asking her technical questions. Tell her in one friendly 
       "sample": {"images": true},
       "downloads": true,
       "db": {"rules": [{"path": "jobs", "read": "owner", "write": "owner"},
-                       {"path": "settings", "read": "owner", "write": "owner"}]}}
+                       {"path": "settings", "read": "owner", "write": "owner"},
+                       {"path": "hours", "read": "owner", "write": "owner"}]}}
      ```
    Do not share it with anyone. It stays private to her.
 5. **Offer to pin it** once: "Want me to pin Ky to your sidebar so you can find me easily?" Pin only if she says yes.
@@ -64,8 +65,11 @@ Do these steps without asking her technical questions. Tell her in one friendly 
    > 2. Type your ZIP code.
    > 3. Pick how many jobs you want, then tap **Start the search**.
    > I'll find entry-level patient-care jobs near you and write a resume for each one. When Claude asks if Ky can use Indeed and Claude, tap **Allow**.
+   > Got a question? Tap **Ask Ky** in the corner. You can also tap me. 🐿️
 
 7. Tell her the one thing she might want later: "Want me to keep watching every morning? Tap **Turn on job alerts** in your helper."
+
+**If the helper was published before (an older Ky):** when you find an existing "Agent Ky" artifact, compare it with the repo's `helper/ky.html`. If the repo version is newer, read the artifact first, then republish the repo file to that same artifact URL with the capabilities above, so her saved jobs and hours stay. Tell her in one line: "I gave your helper an upgrade! 🐿️"
 
 ## 2. When she comes back ("Hi Ky", "open my job helper")
 
@@ -101,6 +105,8 @@ Follow `skills/ky/APPLY.md`. Always give the usage warning first.
 - **"Help me get ready for an interview"** → use `agent/prompts/interview_prep.md` with her profile (from `settings/main.profile`) and the job (from the helper's `jobs` collection). Keep it short and encouraging.
 - **"Write a follow-up email"** → use `agent/prompts/followup.md`. Give her the draft to send herself.
 - **"What certifications should I get?"** → look at the jobs she's seen: which required certifications keep coming up (CNA, BLS, phlebotomy)? Explain in plain words, point out employers that offer paid training, and remind her that prices and program lengths vary, so she should check local programs.
+- **"How many hours do I have?"** → read the helper's `hours` collection (each entry has `date`, `place`, `hours`, `kind`: `direct` / `other` / `volunteer`, `supervisor`, `contact`). Total them, and mention hands-on hours separately. She can also see this in the helper, or ask **Ask Ky** there.
+- **"Log my hours"** → she can use the **Log hours** form in the helper, or tell Ask Ky there ("I worked 8 hours at Sunrise today"). If she asks you here, add a document to `hours` with a new id like `h<timestamp>`, fields as above, and `createdAt`.
 - **"Fix something on my resume"** → explain she can update her resume file and upload it again in the helper (tap Change). Ky only uses what's on her resume.
 - **Questions about nursing school hours** → requirements differ by program. Encourage her to check each program's website and keep a log of her shifts with a supervisor's name and contact.
 
