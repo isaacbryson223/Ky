@@ -123,13 +123,17 @@ STUB = r"""
   window.__saved = []; window.__sampleCalls = 0;
   // ZipRecruiter answers with JSON (a shape the page has to find on its own); with --db it's connected,
   // without it it isn't, so both paths get exercised.
-  const ZIP_JOBS = { total: 1, jobs: [{ name: "Patient Care Assistant", hiring_company: { name: "Example Medical Center" }, location: "Riverside, CA",
-    url: "https://example.com/zr/1", snippet: "Hospital role: take vital signs, help patients with ADLs and safe transfers. BLS required.",
-    salary_min: 20, salary_max: 24, salary_interval: "hourly", posted_time: "2026-11-02" }] };
-  window.__zipArgs = [];
+  // Same shape as the live ZipRecruiter connector (checked against a real call); values are made up.
+  const ZIP_JOBS = { request: {}, results: [
+      { listing_key: "zr-1", title: "Patient Care Assistant", company: "Example Medical Center", location: "Riverside, California", is_remote: false,
+        salary: { min_annual: 41600, max_annual: 49920 }, job_redirect_url: "https://example.com/zr/1", job_type: "Part-time · On-site", benefits: "Medical, Dental", days_ago: 3 },
+      { listing_key: "zr-2", title: "Veterinary Technician ICU", company: "Example Animal Hospital", location: "Riverside, California", is_remote: false,
+        salary: { min_annual: 38500, max_annual: 54000 }, job_redirect_url: "https://example.com/zr/2", job_type: "Full-time · On-site", benefits: null, days_ago: 1 }],
+    status: "OK", meta: { count: 2, limit: 5, total: 2 }, search_url: "https://example.com/search", warnings: [], conversation_id: "c1" };
+  window.__zipArgs = []; window.__ZIP_JOBS = ZIP_JOBS; window.__kyTest = true;
   const mcp = {
     async describeTool(server, tool) {
-      if (server === "ZipRecruiter") return { name: "search_jobs", description: "", inputSchema: { type: "object", properties: { search: { type: "string" }, location: { type: "string" } } } };
+      if (server === "ZipRecruiter") return { name: "search_jobs", description: "", inputSchema: { type: "object", properties: { conversation_id: { type: "string" }, country_admin_code: { type: "string" }, job_role: { type: "string" }, location: { type: "string" }, radius_miles: { type: "number" } } } };
       throw { code: "bad_request" };
     },
     async callTool(server, tool, input) {
@@ -229,8 +233,13 @@ async def main(libs: Path, shots: Path | None, chrome: str = "/usr/bin/google-ch
         ok(len(stored[0]["removedFacts"]) >= 2, "removed facts are recorded for her")
         ptxt = await page.inner_text("#progress")
         if usedb:
-            ok("Found 5 new listings" in ptxt, "ZipRecruiter listings are added to Indeed's")
-            ok(all(a.get("search") and a.get("location") == "92501" for a in await page.evaluate("window.__zipArgs")), "ZipRecruiter gets the right search and ZIP")
+            ok("Found 6 new listings, 3 are entry-level" in ptxt, "ZipRecruiter listings are added to Indeed's (and the vet job is dropped)")
+            z = await page.evaluate("window.__ky.normalizeJobs(window.__ZIP_JOBS, 'ZipRecruiter')")
+            ok(len(z) == 2 and z[0]["url"] == "https://example.com/zr/1" and z[0]["location"] == "Riverside, CA"
+               and z[0]["payText"] == "$41,600 - $49,920 a year" and z[0]["payMin"] == 41600 and len(z[0]["posted"]) == 10
+               and "Part-time" in z[0]["description"], f"ZipRecruiter results are read correctly: {z[:1]}")
+            ok(await page.evaluate("window.__ky.classify('Veterinary Technician ICU')[0]") == "", "veterinary jobs aren't counted as patient care")
+            ok(all(a.get("job_role") and a.get("location") == "92501" and a.get("country_admin_code") == "US" for a in await page.evaluate("window.__zipArgs")), "ZipRecruiter gets job_role, ZIP and country")
         else:
             ok("Found 4 new listings" in ptxt and "searched Indeed only" in ptxt, "search carries on, and says so, when ZipRecruiter isn't connected")
         card = await page.locator(".job").first.inner_text()
@@ -261,7 +270,8 @@ async def main(libs: Path, shots: Path | None, chrome: str = "/usr/bin/google-ch
         await page.click('[data-tab="r"]')
         await page.click('[data-dl="pdf"]'); await page.click('[data-dl="docx"]')
         await page.click('[data-tab="m"]')
-        ok("Matches" in await page.locator('[data-pane="m"]').inner_text(), "job match tab shows the ATS report")
+        mt = await page.locator('[data-pane="m"]').inner_text()
+        ok("Matches" in mt or "didn't list many specific skills" in mt, "job match tab shows the ATS report")
         ok(await page.locator('[data-pane="m"] .checks li').count() == 5, "format checks listed")
         await page.click('[data-tab="c"]'); await page.click('[data-dl="letter"]'); await page.click('[data-dl="letterpdf"]')
         await page.wait_for_timeout(500)

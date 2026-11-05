@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.5.1
+- ZipRecruiter checked against a real search: Ky now sends its real fields (`job_role`, `location`, `country_admin_code`, `radius_miles`) and reads its links, yearly pay, "days ago" dates and job type correctly.
+- Locations like "Sacramento, California" become "Sacramento, CA", so the same job on two sites shows once.
+- Veterinary and animal-care jobs are left out (people patient care only).
+
 ## v2.5
 - Ky searches **ZipRecruiter** as well as Indeed (both free Claude connectors). If ZipRecruiter isn't connected, Ky searches Indeed and says so.
 - **Search the whole web**: a button that hands off to her Claude chat, which checks hospital and clinic career pages, nursing homes and home-care agencies, county, state and VA jobs, and other job sites, then adds the best jobs to her helper with tailored resumes (`skills/ky/WEBSEARCH.md`). Daily alerts can do a short version too ("Also search the whole web every morning").

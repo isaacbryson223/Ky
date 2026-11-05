@@ -1,6 +1,6 @@
 <title>Agent Ky</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="ky-version" content="2.5">
+<meta name="ky-version" content="2.5.1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap">
@@ -583,7 +583,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
     </div>
   </section>
 
-  <p class="footer">Ky only uses facts from your resume and never applies, signs in, or sends anything without you. · Ky v2.5</p>
+  <p class="footer">Ky only uses facts from your resume and never applies, signs in, or sends anything without you. · Ky v2.5.1</p>
 </div>
 
 <button class="fab" id="fab" type="button" aria-label="Ask Ky a question"><span class="face" data-kyface></span><span>Ask Ky</span></button>
@@ -904,7 +904,7 @@ const TIERS = [
   ["C", "Pharmacy Tech", /pharmacy tech/i],
 ];
 const LICENSED = /\b(registered nurse|rn|lvn|lpn|nurse practitioner|np|crna|physician|pharmacist|therapist)\b/i;
-const NOT_ENTRY = /\b(manager|director|supervisor|educator|instructor|teacher|student|lead|travel|registered alcohol|counselor|sales|recruiter|billing|biller|coder|receptionist)\b/i;
+const NOT_ENTRY = /\b(veterinary|vet tech|animal|manager|director|supervisor|educator|instructor|teacher|student|lead|travel|registered alcohol|counselor|sales|recruiter|billing|biller|coder|receptionist)\b/i;
 const CERTS = {
   BLS: ["bls", "basic life support", "cpr", "healthcare provider cpr"],
   CNA: ["cna", "certified nursing assistant", "certified nurse assistant", "certified nurse aide", "nurse aide certification", "nursing assistant certification", "cna license"],
@@ -1095,7 +1095,7 @@ const KEYMAP = {
   title: ["title", "job_title", "jobTitle", "name", "position", "job title"],
   company: ["company", "company_name", "companyName", "hiring_company", "hiringCompany", "employer", "organization", "hiring company"],
   location: ["location", "job_location", "jobLocation", "city", "locationText", "formatted_location", "location_name"],
-  url: ["url", "job_url", "jobUrl", "link", "apply_url", "applyUrl", "job_link", "view job url", "job link"],
+  url: ["url", "job_url", "jobUrl", "job_redirect_url", "redirect_url", "link", "apply_url", "applyUrl", "job_link", "view job url", "job link"],
   description: ["snippet", "description", "job_description", "jobDescription", "summary", "job_snippet"],
   pay: ["salary", "compensation", "pay", "salary_range", "salaryText", "salary_text", "wage", "estimated_salary"],
   posted: ["posted_time", "posted", "date_posted", "postedDate", "posted_at", "posted on", "created", "posted_time_friendly", "date"],
@@ -1122,16 +1122,28 @@ function findJobArray(x, depth = 0) {
   return [];
 }
 const stripTags = (t) => String(t || "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/[ \t]+/g, " ").trim();
+const STATES = { alabama: "AL", alaska: "AK", arizona: "AZ", arkansas: "AR", california: "CA", colorado: "CO", connecticut: "CT", delaware: "DE", florida: "FL", georgia: "GA", hawaii: "HI", idaho: "ID", illinois: "IL", indiana: "IN", iowa: "IA", kansas: "KS", kentucky: "KY", louisiana: "LA", maine: "ME", maryland: "MD", massachusetts: "MA", michigan: "MI", minnesota: "MN", mississippi: "MS", missouri: "MO", montana: "MT", nebraska: "NE", nevada: "NV", "new hampshire": "NH", "new jersey": "NJ", "new mexico": "NM", "new york": "NY", "north carolina": "NC", "north dakota": "ND", ohio: "OH", oklahoma: "OK", oregon: "OR", pennsylvania: "PA", "rhode island": "RI", "south carolina": "SC", "south dakota": "SD", tennessee: "TN", texas: "TX", utah: "UT", vermont: "VT", virginia: "VA", washington: "WA", "west virginia": "WV", wisconsin: "WI", wyoming: "WY", "district of columbia": "DC" };
+// "Sacramento, California" -> "Sacramento, CA" so the same job from two sites is recognized as one
+const shortState = (loc) => String(loc || "").replace(/,\s*([A-Za-z ]+)$/, (m, st) => (STATES[st.trim().toLowerCase()] ? ", " + STATES[st.trim().toLowerCase()] : m));
 function toJob(o, via) {
   let payText = pick(o, KEYMAP.pay);
+  const sal = o.salary && typeof o.salary === "object" ? o.salary : null;
+  if (!payText && sal) {
+    const hourly = sal.min_hourly ?? sal.max_hourly, lo = hourly != null ? sal.min_hourly : (sal.min_annual ?? sal.min), hi = hourly != null ? sal.max_hourly : (sal.max_annual ?? sal.max);
+    const fmt = (n) => Number(n).toLocaleString("en-US", { maximumFractionDigits: 2 });
+    if (lo != null || hi != null) payText = `$${fmt(lo ?? hi)}${lo != null && hi != null && hi !== lo ? " - $" + fmt(hi) : ""} ${hourly != null ? "an hour" : "a year"}`;
+  }
   if (!payText && (o.salary_min || o.salary_max || o.min_salary || o.max_salary)) {
     const lo = o.salary_min ?? o.min_salary, hi = o.salary_max ?? o.max_salary, per = o.salary_interval || o.salary_period || o.pay_period || "";
     payText = `$${lo ?? hi}${hi && lo ? " - $" + hi : ""}${per ? " " + (/hour/i.test(per) ? "an hour" : /year|annual/i.test(per) ? "a year" : per) : ""}`;
   }
   const [lo, hi] = payParse(payText);
-  return { title: stripTags(pick(o, KEYMAP.title)).slice(0, 160), company: stripTags(pick(o, KEYMAP.company)).slice(0, 120), location: stripTags(pick(o, KEYMAP.location)).slice(0, 120),
-    url: safeUrl(pick(o, KEYMAP.url)), description: stripTags(pick(o, KEYMAP.description)).slice(0, 9000), payText, payMin: lo, payMax: hi,
-    posted: toISO(pick(o, KEYMAP.posted)), type: pick(o, KEYMAP.type), jobId: pick(o, ["id", "job_id", "jobId", "listing_key"]), via };
+  const daysAgo = Number(o.days_ago ?? o.daysAgo);
+  const posted = Number.isFinite(daysAgo) && (o.days_ago != null || o.daysAgo != null) ? new Date(Date.now() - daysAgo * 864e5).toISOString().slice(0, 10) : toISO(pick(o, KEYMAP.posted));
+  const description = [stripTags(pick(o, KEYMAP.description)), o.job_type ? "Job type: " + stripTags(o.job_type) : "", typeof o.benefits === "string" && o.benefits ? "Benefits: " + stripTags(o.benefits) : ""].filter(Boolean).join("\n");
+  return { title: stripTags(pick(o, KEYMAP.title)).slice(0, 160), company: stripTags(pick(o, KEYMAP.company)).slice(0, 120), location: shortState(stripTags(pick(o, KEYMAP.location))).slice(0, 120),
+    url: safeUrl(pick(o, KEYMAP.url)), description: description.slice(0, 9000), payText, payMin: lo, payMax: hi,
+    posted, type: pick(o, KEYMAP.type), jobId: pick(o, ["id", "job_id", "jobId", "listing_key"]), via };
 }
 function parseKV(text, via) {  // "**Job Title:** …" or "Title: …" blocks
   const out = []; let cur = null;
@@ -1154,12 +1166,18 @@ function normalizeJobs(payload, via) {
 }
 const zip = { off: false, why: "", schema: null, described: false, calls: 0 };
 function zipArgs(term) {
+  // ZipRecruiter's search_jobs: job_role, location, country_admin_code, radius_miles, employment_types (checked against the live tool)
   const props = zip.schema?.inputSchema?.properties;
-  if (!props) return { search: term, location: state.zip };
-  const keys = Object.keys(props);
-  const q = keys.find((k) => /search|query|keyword|title|what|term/i.test(k)) || keys[0];
-  const loc = keys.find((k) => /location|where|zip|postal|city|place/i.test(k));
-  const a = { [q]: term }; if (loc) a[loc] = state.zip;
+  if (!props || "job_role" in props) {
+    const a = { job_role: term, location: state.zip, country_admin_code: "US", radius_miles: 25 };
+    if (state.prefs.schedule === "fulltime") a.employment_types = ["FULL_TIME"];
+    if (state.prefs.schedule === "parttime") a.employment_types = ["PART_TIME"];
+    return a;
+  }
+  const keys = Object.keys(props);  // the tool changed: map by name
+  const q = keys.find((k) => /role|search|query|keyword|title|what|term/i.test(k) && !/id$/i.test(k));
+  const loc = keys.find((k) => /^(location|where|zip|postal|city|place)/i.test(k));
+  const a = {}; if (q) a[q] = term; if (loc) a[loc] = state.zip;
   return a;
 }
 async function zipSearch(term, signal) {
@@ -2680,6 +2698,7 @@ async function boot() {
     if (fresh && !state.running) ky("happy", "New jobs!", `I found ${fresh} new job${fresh === 1 ? "" : "s"} since you were last here. They're at the top of your list with resumes ready.`);
   }, slow);
 }
+if (window.__kyTest) window.__ky = { normalizeJobs, classify, score };  // for the browser test only
 boot();
 })();
 </script>

@@ -15,7 +15,7 @@ LICENSED_TITLES = re.compile(
     r"\b(registered nurse|rn|lvn|lpn|nurse practitioner|np|crna|physician|pharmacist|therapist)\b", re.I)
 # Not entry-level patient-care work, whatever else the title says.
 NOT_ENTRY_TITLES = re.compile(
-    r"\b(manager|director|supervisor|educator|instructor|teacher|student|lead|coordinator ii|travel|"
+    r"\b(veterinary|vet tech|animal|manager|director|supervisor|educator|instructor|teacher|student|lead|coordinator ii|travel|"
     r"registered alcohol|counselor|sales|recruiter|billing|biller|coder|receptionist)\b", re.I)
 
 SETTING_HOSPITAL = ["hospital", "medical center", "acute care", "emergency department", "emergency room",
