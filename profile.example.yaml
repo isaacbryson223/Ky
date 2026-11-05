@@ -1,0 +1,98 @@
+# Example candidate profile — a FAKE person, used for demos and tests.
+# Copy to `profile.yaml` (git-ignored) and replace with real facts, or run `ky onboard`.
+#
+# Rule: Ky only ever writes what is in this file. If it's not here, it won't
+# appear on a resume. Put real numbers in `numbers:` so bullets can use them.
+
+name: "Maya Torres"
+location: "Riverside, CA"
+zip: "92501"
+max_commute_miles: 20
+contact:
+  email: "maya.torres@example.com"
+  phone: "(555) 010-2345"
+  linkedin: ""
+
+goal: "Registered Nurse (BSN)"
+target_programs:
+  - name: "Example State University BSN"
+    required_patient_care_hours: 200
+    notes: "Prefers CNA or PCT experience"
+target_start: "ASAP"
+
+availability:
+  school_schedule: "Classes Mon/Wed 8am-2pm"
+  shifts_ok: ["evenings", "nights", "weekends"]
+  hours_per_week: 24
+
+pay_minimum_hourly: 19
+
+certifications:
+  - name: "BLS"
+    full_name: "Basic Life Support (BLS) for Healthcare Providers"
+    issuer: "American Heart Association"
+    earned: "2026-02"
+    expires: "2028-02"
+
+education:
+  - school: "Riverside City College"
+    program: "Pre-Nursing (A.S. coursework)"
+    status: "in progress"
+    start: "2025-08"
+    end: "2027-05"
+    gpa: "3.6"
+    prerequisites_done: ["Anatomy & Physiology I", "Intro to Psychology", "English Composition"]
+    prerequisites_in_progress: ["Anatomy & Physiology II", "Microbiology"]
+
+experience:
+  - title: "Caregiver"
+    employer: "Sunrise Home Care"
+    location: "Riverside, CA"
+    start: "2025-03"
+    end: "present"
+    patient_care: true
+    duties:
+      - "Assisted elderly clients with bathing, dressing, toileting and other activities of daily living"
+      - "Took and recorded blood pressure, pulse and temperature each visit"
+      - "Helped clients walk and transfer from bed to wheelchair safely"
+      - "Gave medication reminders and logged them for the family and nurse"
+      - "Reported changes in client condition to the supervising nurse"
+    numbers:
+      - "4 clients per week"
+      - "20 hours per week"
+  - title: "Cashier"
+    employer: "Valley Market"
+    location: "Riverside, CA"
+    start: "2023-06"
+    end: "2025-02"
+    patient_care: false
+    duties:
+      - "Handled 150+ customer transactions per shift with accurate cash handling"
+      - "Trained 3 new cashiers on registers and store policies"
+      - "Resolved customer complaints calmly during busy shifts"
+    numbers:
+      - "150+ customers per shift"
+      - "3 new cashiers trained"
+
+volunteer:
+  - role: "Hospital Volunteer"
+    org: "Riverside Community Hospital"
+    hours: 60
+    start: "2024-09"
+    end: "2025-05"
+    duties:
+      - "Greeted and escorted patients and visitors to units"
+      - "Restocked supply carts and delivered items to nursing stations"
+
+skills:
+  clinical: ["Vital signs", "Activities of daily living (ADLs)", "Patient transfers", "Infection control", "Medication reminders"]
+  technical: ["Microsoft Office", "Google Workspace"]
+  soft: ["Compassionate communication", "Teamwork", "Working under pressure"]
+  languages: ["English (native)", "Spanish (fluent)"]
+
+preferences:
+  settings: ["hospital", "emergency department", "skilled nursing facility"]
+  avoid: ["commission-only", "sales"]
+  keywords_extra: []
+
+resume_template: "clinical-clean"

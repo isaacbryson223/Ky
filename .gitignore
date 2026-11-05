@@ -1,0 +1,17 @@
+# ---- Personal data: NEVER commit (this repo is public) ----
+profile.yaml
+config/employers.local.yaml
+data/
+output/
+.env
+*.db
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+build/
+dist/

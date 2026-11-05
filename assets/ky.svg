@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="Ky the squirrel">
+      <ellipse cx="98" cy="190" rx="56" ry="7" fill="rgba(29,43,40,.10)"/>
+      <g class="tail">
+        <path d="M112 172 C150 178 192 152 190 108 C188 70 166 40 136 44 C110 48 104 74 120 88 C134 100 156 92 158 110 C160 130 138 144 112 150 Z" fill="#E58A4E"/>
+        <path d="M136 44 C166 40 190 70 190 104 C182 82 166 68 148 68 C134 68 124 60 136 44 Z" fill="#FBEBDD"/>
+        <path d="M150 120 C160 112 166 100 164 88" stroke="#C96A33" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".5"/>
+      </g>
+      <g class="body-g">
+        <ellipse cx="92" cy="146" rx="40" ry="42" fill="#E58A4E"/>
+        <ellipse cx="92" cy="152" rx="25" ry="30" fill="#FBEBDD"/>
+        <ellipse cx="72" cy="185" rx="13" ry="6.5" fill="#8C4A2B"/>
+        <ellipse cx="112" cy="185" rx="13" ry="6.5" fill="#8C4A2B"/>
+        <!-- ears -->
+        <path d="M50 58 C44 30 58 18 70 30 C76 38 76 48 72 56 Z" fill="#E58A4E"/>
+        <path d="M56 52 C53 36 60 29 66 35 C70 40 70 46 67 51 Z" fill="#F4A6A0"/>
+        <path d="M134 56 C140 28 126 16 114 28 C108 36 108 46 112 54 Z" fill="#E58A4E"/>
+        <path d="M128 50 C131 34 124 27 118 33 C114 38 114 44 117 49 Z" fill="#F4A6A0"/>
+        <!-- head -->
+        <ellipse cx="92" cy="84" rx="48" ry="42" fill="#E58A4E"/>
+        <path d="M84 44 C86 34 96 32 100 38 C94 36 90 40 92 46 Z" fill="#C96A33"/>
+        <ellipse cx="92" cy="104" rx="24" ry="15" fill="#FBEBDD"/>
+        <ellipse cx="62" cy="102" rx="8" ry="5" fill="#F4A6A0" opacity=".85"/>
+        <ellipse cx="122" cy="102" rx="8" ry="5" fill="#F4A6A0" opacity=".85"/>
+        <g class="eyes">
+          <ellipse cx="74" cy="88" rx="9" ry="11" fill="#2B1E1A"/>
+          <circle cx="77" cy="84" r="3.6" fill="#FFFFFF"/>
+          <circle cx="71.5" cy="93" r="1.6" fill="#FFFFFF"/>
+          <ellipse cx="110" cy="88" rx="9" ry="11" fill="#2B1E1A"/>
+          <circle cx="113" cy="84" r="3.6" fill="#FFFFFF"/>
+          <circle cx="107.5" cy="93" r="1.6" fill="#FFFFFF"/>
+        </g>
+        <path d="M88 99 Q92 96 96 99 Q92 103 88 99 Z" fill="#2B1E1A"/>
+        <path d="M86 105 Q89 109 92 105 Q95 109 98 105" stroke="#2B1E1A" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- paws -->
+        <ellipse cx="80" cy="128" rx="9" ry="7" fill="#E58A4E" stroke="#C96A33" stroke-width="2"/>
+        <ellipse cx="104" cy="128" rx="9" ry="7" fill="#E58A4E" stroke="#C96A33" stroke-width="2"/>
+        
+      </g>
+      
+      
+    </svg>

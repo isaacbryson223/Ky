@@ -1,0 +1,25 @@
+# Local employers Ky checks directly, in addition to the job-search APIs.
+#
+# Add hospitals, clinics, nursing homes, dialysis centers, blood banks and labs
+# near her. To keep your list private, save it as config/employers.local.yaml
+# (git-ignored) instead — Ky uses that file first if it exists.
+#
+# Supported platforms:
+#   workday  — careers URL looks like https://NAME.wd5.myworkdayjobs.com/en-US/SITE
+#   rss      — any job feed URL (.rss / .xml)
+#
+# How to find a hospital's Workday URL: open its careers page, click "Search jobs",
+# and copy the address bar if it contains "myworkdayjobs.com".
+#
+# Other systems (iCIMS, Taleo/Oracle, Phenom, SuccessFactors): add the job by
+# hand with `ky add` for now, or write a new adapter in ky/sources/.
+
+employers: []
+#  - name: Example Health System
+#    platform: workday
+#    url: https://examplehealth.wd5.myworkdayjobs.com/en-US/External
+#
+#  - name: County Health Jobs
+#    platform: rss
+#    url: https://example.gov/jobs/feed.rss
+#    location: "Riverside, CA"
