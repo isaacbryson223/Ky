@@ -11,7 +11,7 @@ Hi Claude! Please open my job helper, Agent Ky 🐿️. I'm not technical, so pl
 
 2. Check my artifacts for one called "Agent Ky".
    - If I have one and its <meta name="ky-version"> is the same as or newer than the repo file's, just open it.
-   - If mine is older, read it, then republish the repo file to that same artifact URL so my saved jobs and hours stay.
+   - If mine is older, read it, then republish the repo file to that same artifact URL with the capabilities in step 3, so my saved jobs and hours stay.
 
 3. If I don't have one, publish helper/ky.html as a new artifact. Use the icon "search", the description "Ky the squirrel finds entry-level patient-care jobs near me and writes a tailored resume for each one.", and exactly these capabilities:
 {"mcp":{"servers":[{"server":"Indeed","tools":["search_jobs","get_job_details"]},{"server":"ZipRecruiter","tools":["search_jobs"]}]},"sample":{"images":true},"downloads":true,"db":{"rules":[{"path":"jobs","read":"owner","write":"owner"},{"path":"settings","read":"owner","write":"owner"},{"path":"hours","read":"owner","write":"owner"}]}}
