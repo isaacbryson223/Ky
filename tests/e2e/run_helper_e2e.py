@@ -227,6 +227,8 @@ async def main(libs: Path, shots: Path | None) -> int:
         await page.select_option(".job select.status >> nth=0", "hired")
         await page.wait_for_timeout(300)
         ok("I got the job!" in await page.locator(".job").first.inner_text(), "status changes to hired")
+        ok(await page.evaluate("document.querySelector('#ky').classList.contains('hired')"), "Ky puts on a nurse cap when she's hired")
+        ok("hired!" in await page.inner_text("#jobStats"), "progress strip counts the new job")
         await page.click("#fab")
         ok(await page.locator("#chatChips button").count() >= 4, "chat shows suggested questions")
         await page.locator("#chatChips button").first.click()

@@ -311,6 +311,10 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
 
 /* Ky's moves */
 .ky .paw-r { transform-origin: 100px 134px; }
+.ky .cap { display: none; }
+.ky.hired .cap { display: inline; }
+.stats { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .9rem; color: var(--muted); width: 100%; }
+.stats b { color: var(--ink); font-variant-numeric: tabular-nums; }
 .ky.wave .paw-r { animation: wave 1.2s ease-in-out; }
 @keyframes wave { 0%, 100% { transform: translate(0, 0) rotate(0); } 20% { transform: translate(14px, -26px) rotate(-20deg); } 40% { transform: translate(14px, -26px) rotate(18deg); } 60% { transform: translate(14px, -26px) rotate(-18deg); } 80% { transform: translate(14px, -26px) rotate(10deg); } }
 .ky:hover .tail { animation-duration: 1s; }
@@ -397,6 +401,8 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
         <!-- head -->
         <ellipse cx="92" cy="84" rx="48" ry="42" fill="var(--fur)"/>
         <path d="M84 44 C86 34 96 32 100 38 C94 36 90 40 92 46 Z" fill="var(--fur-deep)"/>
+        <g class="cap"><path d="M64 53 Q92 45 120 53 L114 32 Q92 24 70 32 Z" fill="#F7FBFA" stroke="var(--teal)" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M92 45 C85.5 40 86 34 89.5 34 C91 34 92 35.2 92 36.4 C92 35.2 93 34 94.5 34 C98 34 98.5 40 92 45 Z" fill="var(--teal)"/></g>
         <ellipse cx="92" cy="104" rx="24" ry="15" fill="var(--cream)"/>
         <ellipse cx="62" cy="102" rx="8" ry="5" fill="var(--blush)" opacity=".85"/>
         <ellipse cx="122" cy="102" rx="8" ry="5" fill="var(--blush)" opacity=".85"/>
@@ -520,6 +526,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
   <section class="panel" aria-labelledby="jobsTitle">
     <div class="panel-head">
       <h2 id="jobsTitle">Your jobs</h2>
+      <div class="stats" id="jobStats" hidden></div>
       <div class="filters" id="filters" role="group" aria-label="Show">
         <button type="button" data-f="all" aria-pressed="true">All</button>
         <button type="button" data-f="new" aria-pressed="false">New</button>
@@ -1516,7 +1523,7 @@ function jobCard(j) {
   const pay = j.payText || "Pay not listed";
   const age = daysAgo(j.posted);
   const ageText = age == null ? "" : age <= 0 ? "Posted today" : age === 1 ? "Posted yesterday" : `Posted ${age} days ago`;
-  const followUp = j.status === "applied" && j.appliedOn && daysAgo(j.appliedOn) >= 7;
+  const followUp = j.status === "applied" && j.appliedOn && daysAgo(j.appliedOn) >= 7 && !j.followedUpOn;
   const ats = atsReport(j, j.resume);
   const pills = [];
   if (!j.seen) pills.push(`<span class="pill new">New</span>`);
@@ -1537,7 +1544,7 @@ function jobCard(j) {
     ? `<button class="btn btn-primary btn-sm" data-act="preview" data-key="${j.key}">See my resume</button>
        <button class="btn btn-soft btn-sm" data-act="pdf" data-key="${j.key}">Download PDF</button>`
     : `<span class="small muted">I couldn't write this resume.</span> <button class="btn btn-soft btn-sm" data-act="retry" data-key="${j.key}">Try again</button>`;
-  const extra = followUp ? `<button class="btn btn-teal btn-sm" data-act="followup" data-key="${j.key}">Write a follow-up</button>`
+  const extra = followUp ? `<button class="btn btn-teal btn-sm" data-act="followup" data-key="${j.key}">Write a follow-up</button> <button class="linkbtn small" data-act="followed" data-key="${j.key}">I followed up</button>`
     : j.status === "interview" ? `<button class="btn btn-teal btn-sm" data-act="practice" data-key="${j.key}">Practice my interview</button>`
     : j.status === "hired" ? `<button class="btn btn-teal btn-sm" data-act="loghours" data-key="${j.key}">Log hours here</button>` : "";
   return `<article class="job ${j.seen ? "" : "is-new"}" data-key="${j.key}">
@@ -1568,11 +1575,22 @@ function jobCard(j) {
   </article>`;
 }
 
+function renderStats() {
+  const jobs = state.jobs.filter((j) => j.status !== "skip");
+  const count = (st) => jobs.filter((j) => j.status === st).length;
+  const applied = jobs.filter((j) => ["applied", "interview", "hired"].includes(j.status)).length;
+  const t = hoursTotals().total;
+  const parts = [[jobs.length, jobs.length === 1 ? "job found" : "jobs found"], [applied, "applied"], [count("interview"), count("interview") === 1 ? "interview" : "interviews"]];
+  if (count("hired")) parts.push([count("hired"), "hired!"]);
+  if (t) parts.push([fmtH(t), "hours logged"]);
+  $("#jobStats").hidden = !jobs.length;
+  $("#jobStats").innerHTML = parts.map(([n, l]) => `<span><b>${n}</b> ${l}</span>`).join("");
+}
 function renderNext() {
   const items = [];
   const jobs = state.jobs.filter((j) => j.status !== "skip");
   for (const j of jobs.filter((j) => j.status === "interview")) items.push([`Get ready for your interview at <b>${esc(j.company)}</b>.`, `<button class="btn btn-teal btn-sm" data-act="practice" data-key="${j.key}">Practice my interview</button>`]);
-  for (const j of jobs.filter((j) => j.status === "applied" && j.appliedOn && daysAgo(j.appliedOn) >= 7)) items.push([`Follow up with <b>${esc(j.company)}</b>. You applied ${daysAgo(j.appliedOn)} days ago.`, `<button class="btn btn-teal btn-sm" data-act="followup" data-key="${j.key}">Write a follow-up</button>`]);
+  for (const j of jobs.filter((j) => j.status === "applied" && j.appliedOn && daysAgo(j.appliedOn) >= 7 && !j.followedUpOn)) items.push([`Follow up with <b>${esc(j.company)}</b>. You applied ${daysAgo(j.appliedOn)} days ago.`, `<button class="btn btn-teal btn-sm" data-act="followup" data-key="${j.key}">Write a follow-up</button> <button class="linkbtn small" data-act="followed" data-key="${j.key}">I followed up</button>`]);
   for (const j of jobs.filter((j) => j.status === "hired")) {
     const recent = state.hours.some((h) => norm(h.place) === norm(j.company) && daysAgo(h.date) <= 7);
     if (!recent) items.push([`Log your shifts at <b>${esc(j.company)}</b> so you have a record for nursing school.`, `<button class="btn btn-teal btn-sm" data-act="loghours" data-key="${j.key}">Log hours</button>`]);
@@ -1602,7 +1620,8 @@ function renderJobs() {
   $("#jobs").innerHTML = shown.length ? shown.map(jobCard).join("") : (list.length ? `<p class="empty">Nothing here yet.</p>` : emptyJobs());
   const unseen = list.filter((j) => !j.seen).length;
   $("#jobsTitle").textContent = unseen ? `Your jobs (${unseen} new)` : "Your jobs";
-  renderSetup(); renderNext();
+  renderSetup(); renderNext(); renderStats();
+  kyEl.classList.toggle("hired", state.jobs.some((j) => j.status === "hired"));
 }
 
 function renderAlerts() {
@@ -2091,7 +2110,7 @@ function chatContext() {
     search_preferences: { job_types: (state.prefs.roles?.length ? state.prefs.roles : DEFAULT_ROLES).map((id) => ROLE_OPTIONS.find((r) => r[0] === id)?.[1]), schedule: state.prefs.schedule, shifts_she_can_work: state.prefs.shifts },
     jobs: [...state.jobs].sort((a, b) => String(b.foundAt).localeCompare(String(a.foundAt))).slice(0, 15).map((j) => ({
       key: j.key, title: j.title, employer: j.company, location: j.location, pay: j.payText || "not listed",
-      status: STATUS_LABEL[j.status || "new"], applied_on: j.appliedOn || null, badges: j.badges, missing_requirements: j.missing,
+      status: STATUS_LABEL[j.status || "new"], applied_on: j.appliedOn || null, followed_up_on: j.followedUpOn || null, badges: j.badges, missing_requirements: j.missing,
       patient_care_rating: clinWord(j.clinical), fit: fitWord(j), red_flags: j.flags,
     })),
     hours_log: { total: Math.round(t.total * 100) / 100, hands_on_patient_care: Math.round(t.direct * 100) / 100, by_place: t.byPlace, her_goal: Number(state.hoursGoal) || null,
@@ -2311,6 +2330,7 @@ function wire() {
     else if (act === "practice") openChat({ job: j, send: `Help me practice for my interview for ${j.title} at ${j.company}. Ask me one question at a time and give me friendly feedback on each answer.` });
     else if (act === "loghours") { $("#hPlace").value = j.company; $("#hoursTitle").scrollIntoView({ behavior: "smooth", block: "start" }); setTimeout(() => $("#hHours").focus(), 400); }
     else if (act === "retry") retryTailor(j, b);
+    else if (act === "followed") { await store.patchJob(j.key, { followedUpOn: todayISO() }); ky("happy", "Nice!", "Following up shows you really want the job. Fingers crossed!"); trick("jump"); }
   };
   $("#jobs").addEventListener("click", onJobClick);
   $("#nextList").addEventListener("click", onJobClick);
@@ -2361,7 +2381,7 @@ async function boot() {
   renderSetup(); renderAlerts();
   let lastTotal = null;
   store.watch("hours", (hrs) => {
-    state.hours = hrs; renderHours(); renderNext();
+    state.hours = hrs; renderHours(); renderNext(); renderStats();
     const t = hoursTotals().total;
     if (lastTotal !== null && t > lastTotal) {
       const m = [10, 25, 50, 100, 150, 200, 300, 500, 750, 1000].find((x) => lastTotal < x && t >= x);

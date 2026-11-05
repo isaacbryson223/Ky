@@ -53,7 +53,10 @@ This runs on a schedule in a fresh session. Nobody is watching, so don't ask que
 
 8. **Record the run:** update `settings/main` (pin the `if_version` you read) with `{"alerts": {...existing alerts fields, "lastRun": "<now ISO>"}}`.
 
-9. **Finish with her notification message** (one or two short lines, Ky's voice):
+9. **Check her reminders** from the `jobs` you listed in step 2: jobs with `status: "applied"`, an `appliedOn` 7+ days ago and no `followedUpOn` need a follow-up; jobs with `status: "interview"` may need practice. Mention at most one reminder in the message.
+
+10. **Finish with her notification message** (one or two short lines, Ky's voice):
    - New jobs: "🐿️ Found 2 new jobs near 95814! CNA at Example Care ($21–24/hr) and PCT at Example Hospital. Your resumes are ready in Ky."
    - Nothing new: "🐿️ No new jobs near 95814 today. I'll check again tomorrow!"
+   - With a reminder, add one line: "Also: it's been a week since you applied to Example Care. Want me to write a follow-up? Tap Ask Ky."
    - A problem (Indeed disconnected, usage limit): say what she can do in one sentence, e.g. "Indeed needs reconnecting in Claude settings so I can keep searching."

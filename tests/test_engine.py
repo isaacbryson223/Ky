@@ -184,3 +184,11 @@ def test_helper_page_lists_match_engine():
         assert f'["{rid}", "{label}", {json.dumps(terms)}, {"true" if on else "false"}]' in page.replace(", ", ", ")
     page_kws = re.findall(r'^\s+"([^"]+)": \[', page.split("const ATS_KEYWORDS = {")[1].split("};")[0], re.M)
     assert page_kws == list(ATS_KEYWORDS)
+
+
+def test_factguard_accepts_her_own_answers(profile):
+    r = _good_resume()
+    r["experience"][0]["bullets"].append("Worked 32 hours per week supporting clients")
+    assert not factguard.check(r, profile).ok  # 32 isn't in her profile yet
+    profile.data["extra_facts"] = [{"question": "About how many hours a week do you work?", "answer": "About 32 hours a week"}]
+    assert factguard.check(r, profile).ok

@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.3
+- Ky puts on a little nurse cap once she gets a job.
+- Progress strip on "Your jobs": jobs found, applied, interviews, hours logged.
+- "I followed up" clears the follow-up reminder; daily alerts mention a follow-up when one is due.
+
 ## v2.2
 - In the resume preview she can ask for changes ("Make it shorter", "Focus more on patient care", or her own words) and Ky updates the resume. The fact check still runs on every update.
 - She can answer Ky's "make it stronger" questions right in the Tips tab. Her answers are saved as her own facts and used in this resume and future ones.
