@@ -1,6 +1,6 @@
 <title>Agent Ky</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="ky-version" content="2.5.1">
+<meta name="ky-version" content="2.5.2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap">
@@ -583,7 +583,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
     </div>
   </section>
 
-  <p class="footer">Ky only uses facts from your resume and never applies, signs in, or sends anything without you. · Ky v2.5.1</p>
+  <p class="footer">Ky only uses facts from your resume and never applies, signs in, or sends anything without you. · Ky v2.5.2</p>
 </div>
 
 <button class="fab" id="fab" type="button" aria-label="Ask Ky a question"><span class="face" data-kyface></span><span>Ask Ky</span></button>
@@ -647,6 +647,29 @@ function shapeResume(r) {
   r.questions_for_candidate = list(r.questions_for_candidate); r.interview_tips = list(r.interview_tips); r.keywords_used = list(r.keywords_used);
   return r;
 }
+function normalizeStoredJob(j) {
+  const o = { ...j };
+  if (typeof o.resume === "string") { try { o.resume = JSON.parse(o.resume); } catch { o.resume = null; } }
+  if (o.resume) { try { shapeResume(o.resume); } catch { o.resume = null; } }
+  o.title = str(o.title); o.company = str(o.company || o.employer); o.location = str(o.location);
+  if (o.clinical == null && o.clinical_score != null) o.clinical = o.clinical_score;
+  if (o.fit == null && o.fit_score != null) o.fit = o.fit_score;
+  o.clinical = Math.max(0, Math.min(100, Number(o.clinical) || 0)); o.fit = Math.max(0, Math.min(100, Number(o.fit) || 0));
+  o.flags = list(o.flags ?? o.red_flags); o.badges = list(o.badges); o.missing = list(o.missing); o.notes = list(o.notes);
+  o.removedFacts = list(o.removedFacts);
+  if (!o.roleLabel && o.role_label) o.roleLabel = str(o.role_label);
+  if (!o.jobId && o.external_id) o.jobId = str(o.external_id);
+  if (!o.type && o.schedule) o.type = str(o.schedule);
+  if (!o.payText && (o.pay_min || o.pay_max)) {
+    const lo = Number(o.pay_min) || null, hi = Number(o.pay_max) || null, yr = o.pay_period === "year" || (lo || hi) > 1000;
+    const f = (n) => n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+    o.payText = `$${f(lo ?? hi)}${lo && hi && hi !== lo ? " - $" + f(hi) : ""} ${yr ? "a year" : "an hour"}`;
+    o.payMin = lo; o.payMax = hi;
+  }
+  o.url = safeUrl(o.url);
+  o.status = STATUS_LABEL[o.status] ? o.status : "new";
+  return o;
+}
 function shapeProfile(p) {
   if (!p || typeof p !== "object" || Array.isArray(p) || !str(p.name).trim()) return null;
   p.name = str(p.name).trim(); p.location = str(p.location); p.goal = str(p.goal);
@@ -697,11 +720,11 @@ function ky(mood, hi, text) {
 /* ===================================================================
    Capabilities (all optional — the page explains what's missing)
    =================================================================== */
-const cap = { db: null, mcp: null, sample: null, downloads: null };
+const cap = { db: null, mcp: null, sample: null, downloads: null, user: null };
 async function connect() {
   const c = window.claude;
   if (!c || typeof c.use !== "function") return;
-  const names = ["db", "mcp", "sample", "downloads"];
+  const names = ["db", "mcp", "sample", "downloads", "user"];  // "user" needs no declaration for isOwner()
   const got = await Promise.all(names.map((n) => c.use(n).catch(() => null)));
   names.forEach((n, i) => (cap[n] = got[i]));
 }
@@ -1690,7 +1713,7 @@ function buildLetterPDF(job, r, p) {
 }
 function fileBase(job, p) { return `${(p.name || "Resume").replace(/[^A-Za-z0-9]+/g, "_")}_${(job.company || "Job").replace(/[^A-Za-z0-9]+/g, "_").slice(0, 30)}`; }
 async function save(filename, make) {
-  if (!cap.downloads) { toast("Downloads only work inside Claude. Open this page from your Claude chat."); return; }
+  if (!cap.downloads) { toast("Downloads aren't available in this view. Open Ky on claude.ai or in the Claude app, then try again."); return; }
   let data;
   try { data = await (typeof make === "function" ? make() : make); }
   catch (e) { console.warn(e); toast("I couldn't make that file. Reload the page and try again."); return; }
@@ -1699,6 +1722,7 @@ async function save(filename, make) {
     if (res?.status === "saved") toast("Saved " + filename);
   } catch (e) {
     if (e?.code === "cancelled" || e?.code === "declined") return;
+    if (e?.code === "unavailable" || e?.code === "not_granted" || e?.code === "capability_disabled") { toast("Downloads aren't available in this view. Open Ky on claude.ai or in the Claude app, then try again."); return; }
     console.warn(e); toast("I couldn't save that file. Try again.");
   }
 }
@@ -1716,10 +1740,10 @@ function renderSetup() {
   $("#count").textContent = state.count;
   $("#minus").disabled = state.count <= 1; $("#plus").disabled = state.count >= 10;
   const ready = has && /^\d{5}$/.test(state.zip);
-  $("#start").disabled = !ready || state.running || !state.jobsLoaded;
+  $("#start").disabled = !ready || state.running || !state.jobsLoaded || !!state.notMine;
   $("#start").textContent = state.running ? "Searching…" : (state.jobs.length ? "Find more jobs" : "Start the search");
   $("#stop").hidden = !state.running;
-  $("#startHelp").textContent = state.running ? "This takes a few minutes." : ready && !state.jobsLoaded ? "Loading your saved jobs…" : ready ? `I'll find ${state.count} job${state.count === 1 ? "" : "s"} near ${state.zip}.` : !has ? "Add your resume to start." : "Add your ZIP code to start.";
+  $("#startHelp").textContent = state.notMine ? "Open your own Ky to search." : state.running ? "This takes a few minutes." : ready && !state.jobsLoaded ? "Loading your saved jobs…" : ready ? `I'll find ${state.count} job${state.count === 1 ? "" : "s"} near ${state.zip}.` : !has ? "Add your resume to start." : "Add your ZIP code to start.";
   renderLearned();
 }
 
@@ -2605,7 +2629,7 @@ function wire() {
     if (b?.dataset.act === "alerts") return openAlerts();
     const j = key && state.jobs.find((x) => x.key === key);
     if (!j) return;
-    if (!j.seen && (b || e.target.closest("a"))) { await store.patchJob(j.key, { seen: true }); j.seen = true; }
+    if (!j.seen && (b || e.target.closest("a"))) { j.seen = true; store.patchJob(j.key, { seen: true }); }  // in the background
     if (!b) return;
     const act = b.dataset.act; const p = state.profile;
     if (act === "preview") openPreview(j);
@@ -2651,8 +2675,13 @@ async function boot() {
   const hr = new Date().getHours(); const part = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
   ky(null, `${part}! I'm Ky`, null);
   await connect();
+  if (cap.user && cap.db) { try { state.notMine = (await cap.user.isOwner()) === false; } catch {} }
   if (!window.claude) {
     $("#envNotice").innerHTML = "<div><b>Open me inside Claude</b>I can only search for jobs and write resumes when this page is open in the Claude app or on claude.ai.</div>";
+    $("#envNotice").hidden = false;
+  } else if (state.notMine) {
+    // someone else's Ky: their data is hidden and nothing she does here can be saved
+    $("#envNotice").innerHTML = "<div><b>This Ky belongs to someone else</b>I can't save your resume or jobs on this page. To get your own Ky, open a new chat in your own Claude and paste the Ky starter message. It only takes a minute.</div>";
     $("#envNotice").hidden = false;
   } else if (!cap.mcp) {
     $("#envNotice").innerHTML = "<div><b>Job search isn't available here</b>Make sure the Indeed connector is added in Claude (Settings, then Connectors), then reopen this page.</div>";
@@ -2692,7 +2721,8 @@ async function boot() {
     lastTotal = t;
   }, slow);
   store.watch("jobs", (jobs) => {
-    state.jobs = jobs; state.jobsLoaded = true; renderJobs(); renderHours();
+    state.jobs = jobs.map((j) => { try { return normalizeStoredJob(j); } catch { return null; } }).filter((j) => j && j.title);
+    state.jobsLoaded = true; renderJobs(); renderHours();
     if (!$("#chat").hidden && !chat.busy) renderChat();
     const fresh = jobs.filter((j) => !j.seen).length;
     if (fresh && !state.running) ky("happy", "New jobs!", `I found ${fresh} new job${fresh === 1 ? "" : "s"} since you were last here. They're at the top of your list with resumes ready.`);

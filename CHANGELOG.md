@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.5.2
+- Opening someone else's Ky (for example a shared link) now says so plainly and locks the search, instead of letting her search and then silently failing to save her resumes.
+- Jobs that Claude saves from the chat (whole-web search, daily alerts) are cleaned up as they load, so they always show their employer and pay and their resumes open, even if saved in the engine's format or as text.
+- Opening a resume no longer waits for a background save, so it opens right away on slow connections.
+- Clearer message when downloads aren't available in a view.
+- New `tests/e2e/replay_saved_data.py` replays a real helper's saved data under Claude's security policy and opens and downloads every resume.
+
 ## v2.5.1
 - ZipRecruiter checked against a real search: Ky now sends its real fields (`job_role`, `location`, `country_admin_code`, `radius_miles`) and reads its links, yearly pay, "days ago" dates and job type correctly.
 - Locations like "Sacramento, California" become "Sacramento, CA", so the same job on two sites shows once.

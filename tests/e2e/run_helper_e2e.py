@@ -114,6 +114,7 @@ STUB = r"""
         subs.push(s); setTimeout(s.fire, 300); return () => subs.splice(subs.indexOf(s), 1);
       },
     });
+    if (window.__SEED) for (const [k, v] of Object.entries(window.__SEED)) docs.set(k, clone(v));  // replay saved data
     window.__db = docs; window.__dbSet = (path, data) => { docs.set(path, clone(data)); notify(); };
     return { doc: docRef, collection: collRef };
   }
@@ -173,7 +174,8 @@ STUB = r"""
   };
   sample.limits = async () => ({ maxPromptBytes: 262144, tools: { maxCount: 8 } });
   const downloads = { async save({ filename, data }) { const size = data.size ?? data.length ?? data.byteLength; window.__saved.push({ filename, size, type: data.type || "" }); return { status: "saved" }; } };
-  window.claude = { use: async (n) => ({ mcp, sample, downloads, db })[n] ?? null };
+  const user = { isOwner: async () => !window.__notMine, canEdit: async () => !window.__notMine, can: async () => null };
+  window.claude = { use: async (n) => ({ mcp, sample, downloads, db, user })[n] ?? null };
 })();
 """
 
