@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.5.3
+- **Fixed: saved resumes wouldn't open** ("I couldn't write this resume") and the saved ZIP code and resume didn't come back after reopening Ky. Claude hands the page its saved data as read-only, and Ky was tidying that data in place, which failed quietly. Ky now always works on its own copy of saved data and of Claude's replies. Nothing saved was lost: every resume opens again once the helper is updated.
+- If tidying one saved resume ever fails, Ky still shows it instead of hiding it.
+- The browser tests now hand the page read-only data, the way Claude does, so this kind of bug fails the tests. The saved-data replay also checks that her ZIP code comes back, and stops with a clear message if an export is missing her settings.
+
 ## v2.5.2
 - Opening someone else's Ky (for example a shared link) now says so plainly and locks the search, instead of letting her search and then silently failing to save her resumes.
 - Jobs that Claude saves from the chat (whole-web search, daily alerts) are cleaned up as they load, so they always show their employer and pay and their resumes open, even if saved in the engine's format or as text.

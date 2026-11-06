@@ -118,6 +118,9 @@ async def main(libs: Path, data: Path, chrome: str) -> int:
     from playwright.async_api import async_playwright
 
     seed = load_export(data)
+    if "settings/main" not in seed:
+        print(f"FAIL {data} has no settings/main.json. Export the settings collection too (it holds her resume).")
+        return 1
     settings = seed.get("settings/main") or {}
     profile = settings.get("profile") or {}
     name = profile.get("name") or "Resume"
@@ -169,6 +172,9 @@ async def main(libs: Path, data: Path, chrome: str) -> int:
         await wait_for(page, f"document.querySelectorAll('.job').length === {len(jobs)}")
         ok(True, f"all {len(jobs)} saved jobs show up")
         ok(await page.evaluate("!document.querySelector('#envNotice:not([hidden])')"), "no warning banner on load")
+        if settings.get("zip"):
+            zipv = await page.evaluate("document.querySelector('#zip').value")
+            ok(zipv == str(settings["zip"]), f"her saved ZIP code is filled in ({zipv or 'empty'})")
         keys = await page.evaluate("[...document.querySelectorAll('.job')].map((c) => c.dataset.key)")
         for key in keys:
             title = await page.inner_text(f'.job[data-key="{key}"] .job-title')

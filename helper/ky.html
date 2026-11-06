@@ -1,6 +1,6 @@
 <title>Agent Ky</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="ky-version" content="2.5.2">
+<meta name="ky-version" content="2.5.3">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap">
@@ -583,7 +583,7 @@ textarea { width: 100%; min-height: 140px; border: 1.5px solid var(--line); bord
     </div>
   </section>
 
-  <p class="footer">Ky only uses facts from your resume and never applies, signs in, or sends anything without you. · Ky v2.5.2</p>
+  <p class="footer">Ky only uses facts from your resume and never applies, signs in, or sends anything without you. · Ky v2.5.3</p>
 </div>
 
 <button class="fab" id="fab" type="button" aria-label="Ask Ky a question"><span class="face" data-kyface></span><span>Ask Ky</span></button>
@@ -629,6 +629,10 @@ function toast(msg, action) {
   if (action) { const b = document.createElement("button"); b.type = "button"; b.className = "linkbtn"; b.style.cssText = "color:inherit;margin-left:10px"; b.textContent = action.label; b.onclick = () => { t.remove(); action.run(); }; t.append(b); }
   $("#toastRoot").replaceChildren(t); setTimeout(() => t.remove(), action ? 6500 : 3200);
 }
+// Data from Claude's runtime (saved documents, Claude's JSON replies) can be read-only.
+// Ky always works on its own copy, so tidying it up can never fail.
+const own = (x) => (x == null ? x : JSON.parse(JSON.stringify(x)));
+const askJSON = async (input, opts) => own(await cap.sample.json(input, opts));
 // Model output can come back in odd shapes; these make it safe to render.
 const str = (v) => (typeof v === "string" ? v : typeof v === "number" ? String(v) : "");
 const list = (v, sep) => (Array.isArray(v) ? v : typeof v === "string" ? (sep ? v.split(sep) : [v]) : [])
@@ -648,9 +652,9 @@ function shapeResume(r) {
   return r;
 }
 function normalizeStoredJob(j) {
-  const o = { ...j };
+  const o = own(j);
   if (typeof o.resume === "string") { try { o.resume = JSON.parse(o.resume); } catch { o.resume = null; } }
-  if (o.resume) { try { shapeResume(o.resume); } catch { o.resume = null; } }
+  if (o.resume && typeof o.resume === "object") { try { shapeResume(o.resume); } catch (e) { console.warn("resume shape", e); } }
   o.title = str(o.title); o.company = str(o.company || o.employer); o.location = str(o.location);
   if (o.clinical == null && o.clinical_score != null) o.clinical = o.clinical_score;
   if (o.fit == null && o.fit_score != null) o.fit = o.fit_score;
@@ -737,7 +741,7 @@ const store = {
     if (cap.db) {
       try {
         const snap = await Promise.race([cap.db.doc("settings/main").get(), sleep(10000).then(() => null)]);
-        if (snap && snap.exists) return snap.data();
+        if (snap && snap.exists) return own(snap.data());
         if (snap) return null;
       } catch {}
     }
@@ -764,7 +768,7 @@ const store = {
       let got = false;
       const timer = setTimeout(() => { if (!got) onSlow?.(); }, 10000);
       return cap.db.collection(coll).onSnapshot(
-        (snap) => { got = true; clearTimeout(timer); cb(snap.docs.map((d) => ({ ...d.data(), [idk]: d.id }))); },
+        (snap) => { got = true; clearTimeout(timer); cb(snap.docs.map((d) => ({ ...own(d.data()), [idk]: d.id }))); },
         () => { clearTimeout(timer); if (!got) onSlow?.(); }
       );
     }
@@ -879,7 +883,7 @@ ${resume}
 async function learnProfile() {
   if (state.profile && state.profileHash === state.resumeHash) return state.profile;
   const forHash = state.resumeHash;
-  const p = shapeProfile(await cap.sample.json(PROFILE_PROMPT(state.resumeText), { cache: { gcTime: 864e5 } }));
+  const p = shapeProfile(await askJSON(PROFILE_PROMPT(state.resumeText), { cache: { gcTime: 864e5 } }));
   if (!p) throw new Error("I couldn't read your name and experience from that resume. Try another file, or paste the text.");
   if (forHash !== state.resumeHash) return state.profile;  // she changed resumes meanwhile
   p.extra_facts = state.profile?.extra_facts || [];
@@ -1219,7 +1223,7 @@ async function zipSearch(term, signal) {
   const txt = jobs.length ? "" : payloadText(res);
   if (!jobs.length && txt.length > 200 && cap.sample) {  // unfamiliar format: let Claude pull the listings out
     try {
-      const arr = await cap.sample.json(`Below is a list of job postings returned by a job search. Extract every posting as a JSON array of objects with these keys: title, company, location, url, salary, posted, snippet. Copy values exactly; use "" when missing. Reply with only the JSON array.\n\n${txt.slice(0, 30000)}`, { modelTier: "quick", signal });
+      const arr = await askJSON(`Below is a list of job postings returned by a job search. Extract every posting as a JSON array of objects with these keys: title, company, location, url, salary, posted, snippet. Copy values exactly; use "" when missing. Reply with only the JSON array.\n\n${txt.slice(0, 30000)}`, { modelTier: "quick", signal });
       jobs = normalizeJobs(arr, "ZipRecruiter");
     } catch (e) { if (e?.code === "cancelled") throw e; }
   }
@@ -1325,7 +1329,7 @@ Reply with ONLY the full revised JSON.`;
 }
 async function reviseResume(j, request) {
   if (!cap.sample || !state.profile) throw new Error("Open this page inside Claude to update resumes.");
-  const r2 = await cap.sample.json(revisePrompt(state.profile, j, j.resume, request), { cache: false });
+  const r2 = await askJSON(revisePrompt(state.profile, j, j.resume, request), { cache: false });
   if (!r2 || typeof r2 !== "object" || !Array.isArray(r2.experience)) throw new Error("I couldn't update it that time. Try asking a different way.");
   const note = r2.note; delete r2.note;
   const removed = factCheck(r2, state.profile);
@@ -1460,7 +1464,7 @@ async function startSearch() {
       ky("working", `Writing resume ${started} of ${pool.length}`, `Tailoring your resume for ${x.j.title} at ${x.j.company}.`);
       let tailored = null, removed = [];
       try {
-        const t = await cap.sample.json(tailorPrompt(p, x.j, x.s), { signal, cache: false });
+        const t = await askJSON(tailorPrompt(p, x.j, x.s), { signal, cache: false });
         removed = factCheck(t, p); tailored = t;  // only a resume that passed the fact check is kept
       } catch (e) {
         if (e?.code === "cancelled") throw e;
@@ -2099,7 +2103,7 @@ function openAddJob() {
       try {
         const sc = score(job, state.profile);
         if (!sc.tier) { sc.tier = "B"; sc.roleLabel = "Your pick"; }
-        const r = await cap.sample.json(tailorPrompt(state.profile, job, sc), { cache: false });
+        const r = await askJSON(tailorPrompt(state.profile, job, sc), { cache: false });
         const removed = factCheck(r, state.profile);
         await store.saveJob({ ...job, ...sc, foundAt: new Date().toISOString(), source: "manual", seen: true, status: "new", resume: r, removedFacts: removed });
         close(); kyConfetti();
@@ -2579,7 +2583,7 @@ let settingsChain = Promise.resolve();
 function persistSettings() { settingsChain = settingsChain.catch(() => {}).then(() => settingsReady).then(writeSettings).catch((e) => console.warn("settings", e)); return settingsChain; }
 async function writeSettings() {
   let prev;
-  if (cap.db) { const snap = await cap.db.doc("settings/main").get(); prev = snap.exists ? snap.data() : {}; }  // a failed read means no write
+  if (cap.db) { const snap = await cap.db.doc("settings/main").get(); prev = snap.exists ? own(snap.data()) : {}; }  // a failed read means no write
   else prev = lsGet("ky.settings") || {};
   const next = {
     ...prev, zip: state.zip, count: state.count, resumeText: state.resumeText, resumeName: state.resumeName,
@@ -2660,7 +2664,7 @@ async function retryTailor(j, btn) {
   btn.disabled = true; btn.textContent = "Writing…";
   try {
     const sc = score(j, state.profile);
-    const r = await cap.sample.json(tailorPrompt(state.profile, j, sc), { cache: false });
+    const r = await askJSON(tailorPrompt(state.profile, j, sc), { cache: false });
     const removed = factCheck(r, state.profile);
     const cur = state.jobs.find((x) => x.key === j.key) || j;
     await store.saveJob({ ...cur, resume: r, removedFacts: removed });
@@ -2695,7 +2699,7 @@ async function boot() {
     state.count = Math.max(1, Math.min(10, Number(s.count) || 5));
     if (!state.resumeText && s.resumeText) {
       state.resumeText = str(s.resumeText); state.resumeName = str(s.resumeName);
-      state.resumeHash = hash(state.resumeText); state.profile = shapeProfile(s.profile); state.profileHash = state.profile ? str(s.profileHash) : "";
+      state.resumeHash = hash(state.resumeText); state.profile = shapeProfile(own(s.profile)); state.profileHash = state.profile ? str(s.profileHash) : "";
     }
     state.alerts = s.alerts || null;
     if (s.prefs) state.prefs = { roles: s.prefs.roles || null, schedule: s.prefs.schedule || "any", shifts: s.prefs.shifts || [], web: !!s.prefs.web };
@@ -2708,7 +2712,7 @@ async function boot() {
   finally { state.settingsLoaded = true; settingsLoaded(); }
   renderSetup(); renderAlerts();
   // alerts are turned on or off from the Claude chat; keep the card current
-  if (cap.db) try { cap.db.doc("settings/main").onSnapshot((snap) => { const a = snap.exists ? snap.data()?.alerts || null : null; if (JSON.stringify(a) !== JSON.stringify(state.alerts)) { state.alerts = a; renderAlerts(); renderNext(); } }, () => {}); } catch {}
+  if (cap.db) try { cap.db.doc("settings/main").onSnapshot((snap) => { const a = snap.exists ? own(snap.data()?.alerts) || null : null; if (JSON.stringify(a) !== JSON.stringify(state.alerts)) { state.alerts = a; renderAlerts(); renderNext(); } }, () => {}); } catch {}
   const slow = () => { $("#envNotice").innerHTML = "<div><b>I can't reach your saved jobs yet</b>Check your connection, then reload this page. Your jobs and hours are safe.</div>"; $("#envNotice").hidden = false; };
   let lastTotal = null;
   store.watch("hours", (hrs) => {

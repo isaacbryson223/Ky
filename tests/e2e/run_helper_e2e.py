@@ -93,12 +93,14 @@ STUB = r"""
 (() => {
   const FIX = %(fix)s;
   // A small stand-in for the artifact database (Firestore-like), used with --db.
+  // Claude's real runtime hands the page read-only data; the stand-ins do the same.
+  const deepFreeze = (x) => { if (x && typeof x === "object" && !Object.isFrozen(x)) { Object.freeze(x); Object.values(x).forEach(deepFreeze); } return x; };
   function makeDb() {
     const docs = new Map(), subs = [];
     const clone = (x) => JSON.parse(JSON.stringify(x));
     const collOf = (path) => path.split("/").slice(0, -1).join("/");
     const notify = () => setTimeout(() => subs.slice().forEach((s) => s.fire()), 5);
-    const snapDoc = (path) => { const d = docs.get(path); return { id: path.split("/").pop(), exists: !!d, data: () => (d ? clone(d) : undefined), metadata: { fromCache: false, hasPendingWrites: false } }; };
+    const snapDoc = (path) => { const d = docs.get(path); return { id: path.split("/").pop(), exists: !!d, data: () => (d ? deepFreeze(clone(d)) : undefined), metadata: { fromCache: false, hasPendingWrites: false } }; };
     const docRef = (path) => ({
       id: path.split("/").pop(), path,
       async get() { return snapDoc(path); },
@@ -161,16 +163,16 @@ STUB = r"""
   }
   sample.json = async (prompt) => {
     window.__sampleCalls++;
-    if (String(prompt).includes("turn it into JSON")) return JSON.parse(JSON.stringify(FIX.profile));
+    if (String(prompt).includes("turn it into JSON")) return deepFreeze(JSON.parse(JSON.stringify(FIX.profile)));
     if (String(prompt).includes("revising")) {
       const r = JSON.parse(JSON.stringify(FIX.tailored));
       r.summary = "Shorter summary for a caregiver headed to nursing school.";
       r.experience[0].bullets = ["Assisted 4 clients per week with activities of daily living (ADLs)", "Helped 40 residents every night"];  // 40 is invented
       r.note = "I made it shorter.";
       window.__lastRevise = String(prompt);
-      return r;
+      return deepFreeze(r);
     }
-    return JSON.parse(JSON.stringify(FIX.tailored));
+    return deepFreeze(JSON.parse(JSON.stringify(FIX.tailored)));
   };
   sample.limits = async () => ({ maxPromptBytes: 262144, tools: { maxCount: 8 } });
   const downloads = { async save({ filename, data }) { const size = data.size ?? data.length ?? data.byteLength; window.__saved.push({ filename, size, type: data.type || "" }); return { status: "saved" }; } };
